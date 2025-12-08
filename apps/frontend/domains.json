@@ -1,0 +1,40 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "destination": "https://traedorceaiyzer.vercel.app/$1",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        },
+        {
+          "key": "X-Quantum-Protection",
+          "value": "400-IQ-Hacker-Grade-Anti-Clone-System-v2.0"
+        },
+        {
+          "key": "X-Clone-Detection",
+          "value": "Quantum-Neural-Core-Active"
+        },
+        {
+          "key": "X-Anti-Debug",
+          "value": "Self-Destruct-Protocol-Engaged"
+        }
+      ]
+    }
+  ]
+}

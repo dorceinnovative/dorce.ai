@@ -1,0 +1,84 @@
+// NIN Card Printing Service Models
+
+model NINCardOrder {
+  id                  String     @id @default(cuid())
+  userId              String
+  user                User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderNumber         String     @unique
+  status              NINOrderStatus @default(PENDING)
+  
+  // Customer Information
+  fullName            String
+  phoneNumber         String
+  email               String?
+  deliveryAddress     Json       // {street, city, state, postalCode}
+  
+  // NIN Information
+  ninNumber          String     // Store only if user consents
+  vninToken          String?    // Virtual NIN token (preferred)
+  improvedSlipUrl    String     // URL to uploaded Improved NIN Slip PDF
+  qrCodeData         String?    // QR code data from the slip
+  
+  // Card Options
+  cardType           CardType   @default(PVC)
+  printType          PrintType  @default(SINGLE_SIDED)
+  quantity           Int        @default(1)
+  
+  // Pricing
+  unitPrice          BigInt     // Price per card
+  totalPrice         BigInt     // Total including delivery
+  deliveryFee        BigInt     @default(0)
+  
+  // Payment
+  paymentMethod      String     // paystack, flutterwave, wallet
+  paymentReference   String?
+  paymentStatus      PaymentStatus @default(PENDING)
+  paidAt             DateTime?
+  
+  // Fulfillment
+  printJobId         String?    // Reference to print queue
+  printedAt          DateTime?
+  shippedAt          DateTime?
+  deliveredAt        DateTime?
+  trackingNumber     String?    @unique
+  
+  // Verification
+  verificationStatus VerificationStatus @default(NOT_VERIFIED)
+  verificationResponse Json?    // Store vNIN verification result
+  
+  // Admin
+  notes              String?
+  adminNotes         String?
+  
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+enum NINOrderStatus {
+  PENDING
+  CONFIRMED
+  PRINTING
+  READY_FOR_DELIVERY
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum CardType {
+  PVC
+  LAMINATED
+  PREMIUM_PLASTIC
+}
+
+enum PrintType {
+  SINGLE_SIDED
+  DOUBLE_SIDED
+  WITH_HOLOGRAM
+}

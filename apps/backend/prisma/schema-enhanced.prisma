@@ -1,0 +1,394 @@
+// Enhanced Security Schema for National-Grade Dorce OS
+// This extends the existing schema with double-entry ledger and comprehensive audit logging
+
+// Core Double-Entry Ledger System
+model LedgerAccount {
+  id                  String     @id @default(cuid())
+  accountNumber       String     @unique
+  accountType         LedgerAccountType
+  userId              String?    // Nullable for system accounts
+  user                User?      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  storeId             String?    // For merchant accounts
+  store               Store?     @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  currency            String     @default("NGN")
+  balance             BigInt     @default(0) // Current balance in minor units
+  pendingBalance      BigInt     @default(0) // Pending transactions
+  blockedBalance      BigInt     @default(0) // Frozen/escrowed amount
+  creditLimit         BigInt     @default(0) // For credit accounts
+  isActive            Boolean    @default(true)
+  isSystem            Boolean    @default(false) // System accounts cannot be deleted
+  description         String?
+  metadata            Json?
+  
+  // Relationships
+  debitEntries        LedgerEntry[] @relation("debitEntries")
+  creditEntries       LedgerEntry[] @relation("creditEntries")
+  
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  
+  @@index([accountNumber])
+  @@index([userId])
+  @@index([storeId])
+  @@index([accountType])
+  @@index([isActive])
+}
+
+model LedgerEntry {
+  id                  String     @id @default(cuid())
+  transactionId       String     @unique
+  
+  // Double-entry bookkeeping - every transaction has debit and credit
+  debitAccountId      String
+  debitAccount        LedgerAccount @relation("debitEntries", fields: [debitAccountId], references: [id], onDelete: Restrict)
+  creditAccountId     String
+  creditAccount       LedgerAccount @relation("creditEntries", fields: [creditAccountId], references: [id], onDelete: Restrict)
+  
+  amount              BigInt     // Always positive - direction determined by debit/credit
+  currency            String     @default("NGN")
+  description         String
+  reference           String     @unique
+  externalReference   String?    // External system reference (bank, payment processor)
+  
+  // Transaction categorization for reporting
+  category            TransactionCategory
+  subcategory         String?
+  
+  // Status and validation
+  status              LedgerStatus @default(PENDING)
+  postedAt            DateTime?  // When transaction was finalized
+  reversedAt          DateTime?  // If transaction was reversed
+  reversalReason      String?
+  reversedBy          String?    // User who performed reversal
+  
+  // Audit trail
+  createdBy           String?    // User/system that created
+  approvedBy          String?    // For high-value transactions
+  
+  // Immutable hash for tamper detection
+  entryHash           String     @unique // SHA-256 hash of transaction data
+  previousHash        String?    // Hash of previous entry for chain integrity
+  
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  
+  @@index([transactionId])
+  @@index([debitAccountId])
+  @@index([creditAccountId])
+  @@index([reference])
+  @@index([externalReference])
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Comprehensive Audit Logging System
+model AuditLog {
+  id                  String     @id @default(cuid())
+  userId              String?    // Who performed the action
+  user                User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId           String?    // Session for correlation
+  requestId           String     @unique // Unique request identifier
+  
+  // Action details
+  action              AuditAction
+  resourceType        ResourceType
+  resourceId          String?    // ID of affected resource
+  resourceDisplay     String?    // Human-readable resource name
+  
+  // Detailed change tracking
+  actionDetails       Json       // Structured action data
+  oldValues           Json?      // Previous state (for updates)
+  newValues           Json?      // New state (for updates)
+  changedFields       String[]   // Array of field names that changed
+  
+  // Security context
+  ipAddress           String     // Client IP
+  userAgent           String?    // Client user agent
+  geographicLocation  String?    // GeoIP location
+  deviceFingerprint   String?    // Device fingerprinting
+  
+  // Risk assessment
+  riskScore           Float      @default(0) // 0-100 risk score
+  riskFactors         String[]   // Risk indicators
+  requiresReview      Boolean    @default(false)
+  
+  // System context
+  serviceName         String     // Microservice name
+  environment         String     @default("production")
+  version             String     // API/service version
+  
+  // Immutable integrity protection
+  logHash             String     @unique // SHA-256 hash of log entry
+  previousHash        String?    // Hash chaining for tamper detection
+  digitalSignature    String?    // HMAC signature for non-repudiation
+  
+  createdAt           DateTime   @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([resourceType])
+  @@index([resourceId])
+  @@index([ipAddress])
+  @@index([riskScore])
+  @@index([createdAt])
+  @@index([requestId])
+}
+
+// Enhanced Escrow System with Multi-Party Support
+model EnhancedEscrow {
+  id                  String     @id @default(cuid())
+  escrowNumber        String     @unique
+  
+  // Multi-party escrow support
+  initiatorId         String     // Who created the escrow
+  initiator           User       @relation("escrowInitiator", fields: [initiatorId], references: [id], onDelete: Restrict)
+  
+  // Primary parties
+  buyerId             String
+  buyer               User       @relation("escrowBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  sellerId            String
+  seller              User       @relation("escrowSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  
+  // Additional stakeholders (for complex transactions)
+  stakeholderIds      String[]   // Array of user IDs
+  
+  // Financial details
+  totalAmount         BigInt     // Total escrow amount
+  currency            String     @default("NGN")
+  buyerLedgerEntryId  String?    // Ledger entry for buyer's debit
+  buyerLedgerEntry    LedgerEntry? @relation("escrowBuyerEntry", fields: [buyerLedgerEntryId], references: [id])
+  
+  // Release conditions and workflow
+  releaseConditions   Json       // Structured release conditions
+  autoReleaseDate     DateTime?  // Automatic release date
+  disputeDeadline     DateTime?  // Deadline to raise disputes
+  
+  // Status tracking
+  status              EscrowStatus @default(PENDING)
+  holdReason          String?
+  
+  // Release tracking
+  releasedAmount      BigInt     @default(0)
+  releasedAt          DateTime?
+  releasedBy          String?    // User who authorized release
+  releaseReason       String?
+  
+  // Refund tracking
+  refundedAmount      BigInt     @default(0)
+  refundedAt          DateTime?
+  refundReason        String?
+  
+  // Linked entities
+  orderId             String?    // Associated order
+  order               Order?     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  contractId          String?    // Associated contract/agreement
+  
+  // Dispute resolution
+  disputeId           String?    @unique
+  dispute             Dispute?   @relation(fields: [disputeId], references: [id])
+  
+  // Compliance and regulatory
+  complianceFlags     String[]   // Regulatory flags
+  requiresApproval    Boolean    @default(false)
+  approvedBy          String?    // Compliance officer approval
+  approvalNotes       String?
+  
+  // Audit trail
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  
+  @@index([escrowNumber])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Security Event Monitoring
+model SecurityEvent {
+  id                  String     @id @default(cuid())
+  eventType           SecurityEventType
+  severity            EventSeverity
+  
+  // Event details
+  title               String
+  description         String
+  eventData           Json       // Structured event data
+  
+  // Context
+  userId              String?
+  user                User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ipAddress           String
+  userAgent           String?
+  geographicLocation  String?
+  
+  // Automated response
+  autoResponse        Json?      // Automated security response taken
+  blocked             Boolean    @default(false) // Whether action was blocked
+  
+  // Investigation status
+  investigationStatus InvestigationStatus @default(OPEN)
+  assignedTo          String?    // Security analyst assignment
+  investigationNotes  String?
+  resolvedAt          DateTime?
+  
+  createdAt           DateTime   @default(now())
+  
+  @@index([eventType])
+  @@index([severity])
+  @@index([userId])
+  @@index([ipAddress])
+  @@index([createdAt])
+  @@index([investigationStatus])
+}
+
+// System Health and Performance Monitoring
+model SystemHealth {
+  id                  String     @id @default(cuid())
+  serviceName         String
+  component           String
+  healthStatus        HealthStatus
+  
+  // Performance metrics
+  responseTime        Float?     // Response time in milliseconds
+  errorRate           Float?     // Error rate percentage
+  throughput          Float?     // Requests per second
+  cpuUsage            Float?     // CPU usage percentage
+  memoryUsage         Float?     // Memory usage percentage
+  diskUsage           Float?     // Disk usage percentage
+  
+  // Detailed status
+  statusDetails       Json       // Detailed status information
+  lastHealthyAt       DateTime?
+  
+  // Alerting
+  alertSent           Boolean    @default(false)
+  alertRecipients     String[]   // Who was notified
+  
+  createdAt           DateTime   @default(now())
+  
+  @@index([serviceName])
+  @@index([component])
+  @@index([healthStatus])
+  @@index([createdAt])
+}
+
+// Enhanced enums for security and compliance
+enum LedgerAccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+  SYSTEM_CONTROL // System control accounts
+  CUSTOMER_DEPOSIT
+  MERCHANT_RESERVE
+  ESCROW_HOLDING
+  COMPLIANCE_RESERVE
+}
+
+enum TransactionCategory {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+  PAYMENT
+  REFUND
+  ESCROW_HOLD
+  ESCROW_RELEASE
+  ESCROW_REFUND
+  COMMISSION
+  FEE
+  INTEREST
+  PENALTY
+  SYSTEM_ADJUSTMENT
+}
+
+enum LedgerStatus {
+  PENDING
+  POSTED
+  REVERSED
+  CANCELLED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  VIEW
+  LOGIN
+  LOGOUT
+  PASSWORD_CHANGE
+  PASSWORD_RESET
+  MFA_ENABLE
+  MFA_DISABLE
+  PERMISSION_GRANT
+  PERMISSION_REVOKE
+  ROLE_ASSIGN
+  ROLE_REMOVE
+  TRANSACTION_INITIATE
+  TRANSACTION_APPROVE
+  TRANSACTION_REJECT
+  TRANSACTION_REVERSE
+  ESCROW_CREATE
+  ESCROW_RELEASE
+  ESCROW_REFUND
+  DISPUTE_RAISE
+  DISPUTE_RESOLVE
+  COMPLIANCE_FLAG
+  SECURITY_ALERT
+}
+
+enum ResourceType {
+  USER
+  WALLET
+  TRANSACTION
+  ESCROW
+  ORDER
+  PRODUCT
+  STORE
+  DOCUMENT
+  KYC
+  LOAN
+  DISPUTE
+  COMPLIANCE_REPORT
+  AUDIT_LOG
+  SYSTEM_CONFIG
+}
+
+enum SecurityEventType {
+  LOGIN_ANOMALY
+  TRANSACTION_ANOMALY
+  ESCROW_ANOMALY
+  PERMISSION_ESCALATION
+  DATA_ACCESS_ANOMALY
+  SYSTEM_INTRUSION
+  MALWARE_DETECTION
+  DDOS_ATTEMPT
+  BRUTE_FORCE_ATTEMPT
+  SUSPICIOUS_API_USAGE
+  GEOGRAPHIC_ANOMALY
+  DEVICE_ANOMALY
+}
+
+enum EventSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum InvestigationStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  FALSE_POSITIVE
+  ESCALATED
+}
+
+enum HealthStatus {
+  HEALTHY
+  DEGRADED
+  UNHEALTHY
+  UNKNOWN
+}

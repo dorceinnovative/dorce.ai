@@ -1,0 +1,46 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="95" fill="url(#gradient1)" stroke="url(#gradient2)" stroke-width="2"/>
+  
+  <!-- Main D Letter with AI Integration -->
+  <path d="M60 60 L60 140 L90 140 C110 140 125 125 125 105 C125 85 110 70 90 70 L80 70 L80 60" fill="url(#gradient3)"/>
+  
+  <!-- AI Circuit Pattern -->
+  <circle cx="140" cy="60" r="8" fill="#00D4FF" opacity="0.8"/>
+  <circle cx="155" cy="75" r="6" fill="#00FF88" opacity="0.7"/>
+  <circle cx="145" cy="90" r="5" fill="#FF6B6B" opacity="0.6"/>
+  
+  <!-- Circuit Lines -->
+  <path d="M140 60 L155 75 M155 75 L145 90 M145 90 L125 105" stroke="url(#gradient4)" stroke-width="2" opacity="0.6"/>
+  
+  <!-- Tech Grid -->
+  <defs>
+    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#1E40AF" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect x="60" y="130" width="65" height="15" fill="url(#grid)" opacity="0.4"/>
+  
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </linearGradient>
+    
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#60A5FA"/>
+    </linearGradient>
+    
+    <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E0E7FF"/>
+    </linearGradient>
+    
+    <linearGradient id="gradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00D4FF"/>
+      <stop offset="100%" stop-color="#00FF88"/>
+    </linearGradient>
+  </defs>
+</svg>

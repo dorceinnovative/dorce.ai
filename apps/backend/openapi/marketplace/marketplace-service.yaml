@@ -1,0 +1,1368 @@
+openapi: 3.0.3
+info:
+  title: Dorce OS Marketplace Service API
+  description: |
+    National-grade marketplace service for Dorce OS Business Operating System.
+    Provides secure product management, order processing, and commerce functionality.
+  version: 1.0.0
+  contact:
+    name: Dorce OS Commerce Team
+    email: commerce@dorce.ai
+    url: https://dorce.ai/commerce
+  license:
+    name: National Grade License
+    url: https://dorce.ai/license
+
+servers:
+  - url: https://api.dorce.ai/v1/marketplace
+    description: Production server
+  - url: https://staging-api.dorce.ai/v1/marketplace
+    description: Staging server
+  - url: http://localhost:3000/v1/marketplace
+    description: Development server
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+paths:
+  /products:
+    get:
+      summary: Get products
+      description: Retrieve marketplace products with filtering and pagination
+      operationId: getProducts
+      tags:
+        - Product Management
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+            format: double
+            minimum: 0
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+            format: double
+            minimum: 0
+        - name: businessId
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, ACTIVE, INACTIVE, ARCHIVED]
+      responses:
+        '200':
+          description: Products retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsResponse'
+
+    post:
+      summary: Create product
+      description: Create a new marketplace product
+      operationId: createProduct
+      tags:
+        - Product Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+  /products/{productId}:
+    get:
+      summary: Get product details
+      description: Retrieve detailed information about specific product
+      operationId: getProduct
+      tags:
+        - Product Management
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+    put:
+      summary: Update product
+      description: Update marketplace product information
+      operationId: updateProduct
+      tags:
+        - Product Management
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+    delete:
+      summary: Delete product
+      description: Delete marketplace product
+      operationId: deleteProduct
+      tags:
+        - Product Management
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+
+  /orders:
+    get:
+      summary: Get orders
+      description: Retrieve user orders with filtering and pagination
+      operationId: getOrders
+      tags:
+        - Order Management
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED]
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdersResponse'
+
+    post:
+      summary: Create order
+      description: Create a new marketplace order
+      operationId: createOrder
+      tags:
+        - Order Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /orders/{orderId}:
+    get:
+      summary: Get order details
+      description: Retrieve detailed information about specific order
+      operationId: getOrder
+      tags:
+        - Order Management
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+    put:
+      summary: Update order
+      description: Update order status and details
+      operationId: updateOrder
+      tags:
+        - Order Management
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderRequest'
+      responses:
+        '200':
+          description: Order updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /orders/{orderId}/cancel:
+    post:
+      summary: Cancel order
+      description: Cancel a marketplace order
+      operationId: cancelOrder
+      tags:
+        - Order Management
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelOrderRequest'
+      responses:
+        '200':
+          description: Order cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /orders/{orderId}/fulfill:
+    post:
+      summary: Fulfill order
+      description: Mark order as fulfilled
+      operationId: fulfillOrder
+      tags:
+        - Order Management
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FulfillOrderRequest'
+      responses:
+        '200':
+          description: Order fulfilled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /products/{productId}/reviews:
+    get:
+      summary: Get product reviews
+      description: Retrieve reviews for specific product
+      operationId: getProductReviews
+      tags:
+        - Reviews
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Reviews retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewsResponse'
+
+    post:
+      summary: Create review
+      description: Create a review for specific product
+      operationId: createReview
+      tags:
+        - Reviews
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewRequest'
+      responses:
+        '201':
+          description: Review created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResponse'
+
+  /categories:
+    get:
+      summary: Get categories
+      description: Retrieve marketplace product categories
+      operationId: getCategories
+      tags:
+        - Categories
+      responses:
+        '200':
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesResponse'
+
+  /webhooks/order:
+    post:
+      summary: Order webhook
+      description: Webhook endpoint for order notifications
+      operationId: orderWebhook
+      tags:
+        - Webhooks
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderWebhookRequest'
+      responses:
+        '200':
+          description: Webhook processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT authentication token
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for service-to-service authentication
+
+  schemas:
+    CreateProductRequest:
+      type: object
+      required:
+        - name
+        - description
+        - price
+        - currency
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Product name
+          example: 'Premium Laptop'
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Product description
+          example: 'High-performance laptop for business professionals'
+        sku:
+          type: string
+          maxLength: 50
+          description: Stock Keeping Unit
+          example: 'LAPTOP-001'
+        barcode:
+          type: string
+          maxLength: 50
+          description: Product barcode
+          example: '1234567890123'
+        price:
+          type: number
+          format: double
+          minimum: 0.01
+          description: Product price
+          example: 250000.00
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: Currency code (ISO 4217)
+          example: NGN
+        compareAtPrice:
+          type: number
+          format: double
+          minimum: 0
+          description: Original price before discount
+          example: 300000.00
+        costPrice:
+          type: number
+          format: double
+          minimum: 0
+          description: Cost to business
+          example: 200000.00
+        inventoryQuantity:
+          type: integer
+          minimum: 0
+          description: Available inventory quantity
+          example: 50
+        inventoryPolicy:
+          type: string
+          enum: [DENY, CONTINUE]
+          description: Inventory policy when out of stock
+          example: DENY
+        category:
+          type: string
+          maxLength: 100
+          description: Product category
+          example: 'Electronics'
+        subcategory:
+          type: string
+          maxLength: 100
+          description: Product subcategory
+          example: 'Laptops'
+        tags:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+          description: Product tags
+          example: ['laptop', 'business', 'premium']
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 10
+          description: Product image URLs
+          example: ['https://cdn.dorce.ai/products/laptop1.jpg']
+        documents:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 5
+          description: Product documents/certificates
+          example: ['https://cdn.dorce.ai/documents/warranty.pdf']
+        requiresLicense:
+          type: boolean
+          description: Whether product requires license
+          example: false
+        licenseRequired:
+          type: array
+          items:
+            type: string
+          description: Types of licenses required
+          example: []
+        regulatoryApproval:
+          type: boolean
+          description: Whether product has regulatory approval
+          example: true
+
+    ProductResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: 'product_123456789'
+            businessProfileId:
+              type: string
+              example: 'business_123456789'
+            name:
+              type: string
+              example: 'Premium Laptop'
+            description:
+              type: string
+              example: 'High-performance laptop for business professionals'
+            sku:
+              type: string
+              example: 'LAPTOP-001'
+            barcode:
+              type: string
+              example: '1234567890123'
+            price:
+              type: number
+              format: double
+              example: 250000.00
+            currency:
+              type: string
+              example: NGN
+            compareAtPrice:
+              type: number
+              format: double
+              example: 300000.00
+            costPrice:
+              type: number
+              format: double
+              example: 200000.00
+            inventoryQuantity:
+              type: integer
+              example: 50
+            inventoryPolicy:
+              type: string
+              enum: [DENY, CONTINUE]
+              example: DENY
+            category:
+              type: string
+              example: 'Electronics'
+            subcategory:
+              type: string
+              example: 'Laptops'
+            tags:
+              type: array
+              items:
+                type: string
+              example: ['laptop', 'business', 'premium']
+            images:
+              type: array
+              items:
+                type: string
+                format: uri
+              example: ['https://cdn.dorce.ai/products/laptop1.jpg']
+            documents:
+              type: array
+              items:
+                type: string
+                format: uri
+              example: ['https://cdn.dorce.ai/documents/warranty.pdf']
+            status:
+              type: string
+              enum: [DRAFT, ACTIVE, INACTIVE, ARCHIVED]
+              example: ACTIVE
+            isActive:
+              type: boolean
+              example: true
+            requiresLicense:
+              type: boolean
+              example: false
+            licenseRequired:
+              type: array
+              items:
+                type: string
+              example: []
+            regulatoryApproval:
+              type: boolean
+              example: true
+            createdAt:
+              type: string
+              format: date-time
+              example: '2023-12-01T10:00:00Z'
+            updatedAt:
+              type: string
+              format: date-time
+              example: '2023-12-01T10:00:00Z'
+            publishedAt:
+              type: string
+              format: date-time
+              example: '2023-12-01T10:00:00Z'
+
+    ProductsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            products:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductResponse'
+            pagination:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  example: 1
+                limit:
+                  type: integer
+                  example: 20
+                total:
+                  type: integer
+                  example: 150
+                pages:
+                  type: integer
+                  example: 8
+                hasNext:
+                  type: boolean
+                  example: true
+                hasPrev:
+                  type: boolean
+                  example: false
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        sku:
+          type: string
+          maxLength: 50
+        barcode:
+          type: string
+          maxLength: 50
+        price:
+          type: number
+          format: double
+          minimum: 0.01
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        compareAtPrice:
+          type: number
+          format: double
+          minimum: 0
+        costPrice:
+          type: number
+          format: double
+          minimum: 0
+        inventoryQuantity:
+          type: integer
+          minimum: 0
+        inventoryPolicy:
+          type: string
+          enum: [DENY, CONTINUE]
+        category:
+          type: string
+          maxLength: 100
+        subcategory:
+          type: string
+          maxLength: 100
+        tags:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 10
+        documents:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 5
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, INACTIVE, ARCHIVED]
+        isActive:
+          type: boolean
+        requiresLicense:
+          type: boolean
+        licenseRequired:
+          type: array
+          items:
+            type: string
+        regulatoryApproval:
+          type: boolean
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - items
+        - customerEmail
+        - customerName
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - productId
+              - quantity
+            properties:
+              productId:
+                type: string
+                description: Product ID
+                example: 'product_123456789'
+              quantity:
+                type: integer
+                minimum: 1
+                description: Quantity to order
+                example: 2
+              variant:
+                type: string
+                description: Product variant
+                example: 'Black, 16GB'
+              options:
+                type: object
+                description: Selected options
+                additionalProperties: true
+          minItems: 1
+          maxItems: 50
+          description: Order items
+        type:
+          type: string
+          enum: [STANDARD, PREORDER, BACKORDER, QUOTE]
+          description: Order type
+          example: STANDARD
+        customerEmail:
+          type: string
+          format: email
+          description: Customer email address
+          example: customer@example.com
+        customerPhone:
+          type: string
+          description: Customer phone number
+          example: '+2348012345678'
+        customerName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Customer full name
+          example: 'John Doe'
+        shippingAddress:
+          type: object
+          description: Shipping address
+          properties:
+            street:
+              type: string
+              maxLength: 200
+            city:
+              type: string
+              maxLength: 100
+            state:
+              type: string
+              maxLength: 100
+            country:
+              type: string
+              maxLength: 2
+            postalCode:
+              type: string
+              maxLength: 20
+        billingAddress:
+          type: object
+          description: Billing address
+          properties:
+            street:
+              type: string
+              maxLength: 200
+            city:
+              type: string
+              maxLength: 100
+            state:
+              type: string
+              maxLength: 100
+            country:
+              type: string
+              maxLength: 2
+            postalCode:
+              type: string
+              maxLength: 20
+        notes:
+          type: string
+          maxLength: 500
+          description: Order notes
+          example: 'Please deliver between 9AM-5PM'
+
+    OrderResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: 'order_123456789'
+            orderNumber:
+              type: string
+              example: 'ORD-2023-123456'
+            type:
+              type: string
+              enum: [STANDARD, PREORDER, BACKORDER, QUOTE]
+              example: STANDARD
+            userId:
+              type: string
+              example: 'user_123456789'
+            businessProfileId:
+              type: string
+              example: 'business_123456789'
+            customerEmail:
+              type: string
+              format: email
+              example: customer@example.com
+            customerPhone:
+              type: string
+              example: '+2348012345678'
+            customerName:
+              type: string
+              example: 'John Doe'
+            subtotal:
+              type: number
+              format: double
+              example: 500000.00
+            taxAmount:
+              type: number
+              format: double
+              example: 25000.00
+            shippingAmount:
+              type: number
+              format: double
+              example: 5000.00
+            discountAmount:
+              type: number
+              format: double
+              example: 0.00
+            totalAmount:
+              type: number
+              format: double
+              example: 530000.00
+            currency:
+              type: string
+              example: NGN
+            status:
+              type: string
+              enum: [PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED]
+              example: PENDING
+            paymentStatus:
+              type: string
+              enum: [PENDING, AUTHORIZED, PAID, PARTIALLY_PAID, REFUNDED, CANCELLED]
+              example: PENDING
+            fulfillmentStatus:
+              type: string
+              enum: [PENDING, PROCESSING, SHIPPED, DELIVERED, RETURNED, CANCELLED]
+              example: PENDING
+            shippingAddress:
+              type: object
+              description: Shipping address
+            billingAddress:
+              type: object
+              description: Billing address
+            reference:
+              type: string
+              example: 'REF-ORDER-123'
+            externalReference:
+              type: string
+              example: 'EXT-REF-456'
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: 'item_123456789'
+                  productId:
+                    type: string
+                    example: 'product_123456789'
+                  name:
+                    type: string
+                    example: 'Premium Laptop'
+                  sku:
+                    type: string
+                    example: 'LAPTOP-001'
+                  quantity:
+                    type: integer
+                    example: 2
+                  unitPrice:
+                    type: number
+                    format: double
+                    example: 250000.00
+                  totalPrice:
+                    type: number
+                    format: double
+                    example: 500000.00
+                  variant:
+                    type: string
+                    example: 'Black, 16GB'
+                  options:
+                    type: object
+                  fulfillmentStatus:
+                    type: string
+                    enum: [PENDING, PROCESSING, SHIPPED, DELIVERED, RETURNED, CANCELLED]
+                    example: PENDING
+            createdAt:
+              type: string
+              format: date-time
+              example: '2023-12-01T10:00:00Z'
+            updatedAt:
+              type: string
+              format: date-time
+              example: '2023-12-01T10:00:00Z'
+            paidAt:
+              type: string
+              format: date-time
+              example: '2023-12-01T11:00:00Z'
+            fulfilledAt:
+              type: string
+              format: date-time
+              example: '2023-12-03T14:00:00Z'
+            cancelledAt:
+              type: string
+              format: date-time
+              example: '2023-12-02T16:00:00Z'
+
+    OrdersResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            orders:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrderResponse'
+            pagination:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  example: 1
+                limit:
+                  type: integer
+                  example: 20
+                total:
+                  type: integer
+                  example: 50
+                pages:
+                  type: integer
+                  example: 3
+                hasNext:
+                  type: boolean
+                  example: true
+                hasPrev:
+                  type: boolean
+                  example: false
+
+    UpdateOrderRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED]
+        paymentStatus:
+          type: string
+          enum: [PENDING, AUTHORIZED, PAID, PARTIALLY_PAID, REFUNDED, CANCELLED]
+        fulfillmentStatus:
+          type: string
+          enum: [PENDING, PROCESSING, SHIPPED, DELIVERED, RETURNED, CANCELLED]
+        shippingAddress:
+          type: object
+          description: Updated shipping address
+        billingAddress:
+          type: object
+          description: Updated billing address
+        notes:
+          type: string
+          maxLength: 500
+
+    CancelOrderRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Cancellation reason
+          example: 'Customer requested cancellation'
+        refundAmount:
+          type: number
+          format: double
+          minimum: 0
+          description: Amount to refund
+          example: 530000.00
+
+    FulfillOrderRequest:
+      type: object
+      required:
+        - trackingNumber
+        - carrier
+      properties:
+        trackingNumber:
+          type: string
+          maxLength: 100
+          description: Shipping tracking number
+          example: 'TRK123456789'
+        carrier:
+          type: string
+          maxLength: 100
+          description: Shipping carrier name
+          example: 'DHL Express'
+        shippedAt:
+          type: string
+          format: date-time
+          description: Shipping date
+          example: '2023-12-03T10:00:00Z'
+        estimatedDelivery:
+          type: string
+          format: date
+          description: Estimated delivery date
+          example: '2023-12-05'
+        notes:
+          type: string
+          maxLength: 500
+          description: Fulfillment notes
+          example: 'Package shipped with signature required'
+
+    CreateReviewRequest:
+      type: object
+      required:
+        - rating
+        - content
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Product rating (1-5 stars)
+          example: 5
+        title:
+          type: string
+          maxLength: 100
+          description: Review title
+          example: 'Excellent product!'
+        content:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Review content
+          example: 'This laptop exceeded my expectations. Great performance and build quality.'
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 5
+          description: Review images
+          example: ['https://cdn.dorce.ai/reviews/laptop1.jpg']
+        orderId:
+          type: string
+          description: Order ID for verified purchase
+          example: 'order_123456789'
+
+    ReviewResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: 'review_123456789'
+            productId:
+              type: string
+              example: 'product_123456789'
+            userId:
+              type: string
+              example: 'user_123456789'
+            orderId:
+              type: string
+              example: 'order_123456789'
+            rating:
+              type: integer
+              example: 5
+            title:
+              type: string
+              example: 'Excellent product!'
+            content:
+              type: string
+              example: 'This laptop exceeded my expectations. Great performance and build quality.'
+            images:
+              type: array
+              items:
+                type: string
+                format: uri
+              example: ['https://cdn.dorce.ai/reviews/laptop1.jpg']
+            verifiedPurchase:
+              type: boolean
+              example: true
+            status:
+              type: string
+              enum: [PENDING, APPROVED, REJECTED, FLAGGED]
+              example: APPROVED
+            createdAt:
+              type: string
+              format: date-time
+              example: '2023-12-01T15:00:00Z'
+            updatedAt:
+              type: string
+              format: date-time
+              example: '2023-12-01T15:00:00Z'
+
+    ReviewsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            reviews:
+              type: array
+              items:
+                $ref: '#/components/schemas/ReviewResponse'
+            pagination:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  example: 1
+                limit:
+                  type: integer
+                  example: 20
+                total:
+                  type: integer
+                  example: 25
+                pages:
+                  type: integer
+                  example: 2
+                hasNext:
+                  type: boolean
+                  example: true
+                hasPrev:
+                  type: boolean
+                  example: false
+
+    CategoriesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            categories:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: 'category_123'
+                  name:
+                    type: string
+                    example: 'Electronics'
+                  slug:
+                    type: string
+                    example: 'electronics'
+                  description:
+                    type: string
+                    example: 'Electronic devices and gadgets'
+                  image:
+                    type: string
+                    format: uri
+                    example: 'https://cdn.dorce.ai/categories/electronics.jpg'
+                  subcategories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: 'subcategory_123'
+                        name:
+                          type: string
+                          example: 'Laptops'
+                        slug:
+                          type: string
+                          example: 'laptops'
+                        productCount:
+                          type: integer
+                          example: 150
+
+    DeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Product deleted successfully
+
+    OrderWebhookRequest:
+      type: object
+      properties:
+        event:
+          type: string
+          description: Webhook event type
+          example: 'order.status_changed'
+        data:
+          type: object
+          properties:
+            orderId:
+              type: string
+              example: 'order_123456789'
+            previousStatus:
+              type: string
+              enum: [PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED]
+              example: PENDING
+            newStatus:
+              type: string
+              enum: [PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED]
+              example: CONFIRMED
+            changedAt:
+              type: string
+              format: date-time
+              example: '2023-12-01T11:00:00Z'
+        signature:
+          type: string
+          description: Webhook signature for verification
+          example: 'sha256=abc123def456'
+
+    WebhookResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Webhook processed successfully
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: PRODUCT_NOT_FOUND
+            message:
+              type: string
+              example: Product not found
+            details:
+              type: object
+              additionalProperties: true
+            timestamp:
+              type: string
+              format: date-time
+              example: '2023-12-01T12:00:00Z'
+            path:
+              type: string
+              example: /v1/marketplace/products/product_123
+            requestId:
+              type: string
+              example: 'req_123456789'

@@ -1,0 +1,1180 @@
+// Dorce OS National-Grade Business Operating System
+// Enhanced Schema for Government-Ready Deployment
+// Version: 1.0.0
+// Security Classification: National Grade
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// CORE USER & IDENTITY MANAGEMENT
+// ============================================
+
+model User {
+  id                    String   @id @default(cuid())
+  email                 String   @unique
+  phone                 String?  @unique
+  nin                   String?  @unique // National Identification Number
+  bvn                   String?  @unique // Bank Verification Number
+  firstName             String
+  lastName              String
+  middleName            String?
+  dateOfBirth           DateTime?
+  gender                Gender?
+  nationality           String?
+  stateOfOrigin         String?
+  lga                   String? // Local Government Area
+  address               String?
+  profileImage          String?
+  
+  // Security & Authentication
+  passwordHash          String
+  mfaSecret             String?
+  mfaEnabled            Boolean  @default(false)
+  biometricTemplate     String? // Encrypted biometric data
+  securityQuestions     Json? // Encrypted security Q&A
+  
+  // Status & Verification
+  status                UserStatus @default(PENDING)
+  emailVerified         Boolean  @default(false)
+  phoneVerified         Boolean  @default(false)
+  ninVerified           Boolean  @default(false)
+  bvnVerified           Boolean  @default(false)
+  identityScore         Int      @default(0) // 0-1000 identity confidence score
+  
+  // Government Integration
+  cacRecords            CACRecord[]
+  taxRecords            TaxRecord[]
+  governmentProfiles    GovernmentProfile[]
+  
+  // Business & Roles
+  roles                 UserRole[]
+  permissions           String[] // Array of permission strings
+  businessProfile       BusinessProfile?
+  
+  // Timestamps & Audit
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  lastLoginAt           DateTime?
+  lastPasswordChange    DateTime?
+  failedLoginAttempts   Int      @default(0)
+  lockedUntil           DateTime?
+  
+  // Relationships
+  wallets               Wallet[]
+  sessions              Session[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  activities            ActivityLog[]
+  
+  @@map("users")
+}
+
+model BusinessProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  
+  // Business Registration
+  businessName          String
+  businessType          BusinessType
+  registrationNumber    String?  @unique // CAC Registration Number
+  taxIdentificationNumber String? @unique // TIN
+  
+  // Business Details
+  industry              String?
+  description           String?
+  website               String?
+  email                 String?
+  phone                 String?
+  
+  // Address & Location
+  address               String?
+  city                  String?
+  state                 String?
+  country               String?
+  postalCode            String?
+  
+  // Financial & Regulatory
+  annualRevenue         Decimal?
+  employeeCount         Int?
+  bankAccountVerified   Boolean  @default(false)
+  
+  // Status & Verification
+  status                BusinessStatus @default(PENDING)
+  verificationLevel     Int      @default(0) // 0-5 verification levels
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relationships
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallets               Wallet[]
+  products              Product[]
+  orders                Order[]
+  taxReturns            TaxReturn[]
+  cacApplications       CACApplication[]
+  
+  @@map("business_profiles")
+}
+
+model GovernmentProfile {
+  id                    String   @id @default(cuid())
+  userId                String
+  governmentId          String // Government agency identifier
+  agencyName              String // Name of government agency
+  role                    String // Role in government agency
+  clearanceLevel          Int      @default(1) // 1-5 security clearance
+  accessPermissions       String[] // Specific government system permissions
+  
+  // Verification & Validation
+  verifiedBy              String? // Who verified this profile
+  verificationDate        DateTime?
+  expiryDate              DateTime?
+  
+  // Timestamps
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  
+  // Relationships
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, governmentId])
+  @@map("government_profiles")
+}
+
+// ============================================
+// WALLET & FINANCIAL LEDGER SYSTEM
+// ============================================
+
+model Wallet {
+  id                    String   @id @default(cuid())
+  userId                String
+  businessProfileId     String?
+  
+  // Wallet Details
+  address               String   @unique // Blockchain-style wallet address
+  type                  WalletType @default(STANDARD)
+  currency              String   @default("NGN")
+  
+  // Balances (Double-entry bookkeeping)
+  balance               Decimal  @default(0) // Current available balance
+  ledgerBalance         Decimal  @default(0) // Ledger balance (including pending)
+  reservedBalance       Decimal  @default(0) // Reserved for escrow/pending transactions
+  
+  // Security & Limits
+  dailyLimit            Decimal  @default(1000000) // Daily transaction limit
+  monthlyLimit          Decimal  @default(50000000) // Monthly transaction limit
+  transactionLimit      Decimal  @default(100000) // Single transaction limit
+  
+  // Status & Verification
+  status                WalletStatus @default(ACTIVE)
+  verified              Boolean  @default(false)
+  
+  // Bank Integration
+  bankAccountNumber     String?
+  bankCode              String?
+  bankName              String?
+  bankVerified          Boolean  @default(false)
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  lastTransactionAt     DateTime?
+  
+  // Relationships
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessProfile       BusinessProfile? @relation(fields: [businessProfileId], references: [id], onDelete: SetNull)
+  
+  // Financial Relationships
+  ledgerEntries         LedgerEntry[]
+  transactions          Transaction[]
+  escrowAccounts        EscrowAccount[]
+  auditLogs             AuditLog[]
+  
+  @@unique([userId, currency, type])
+  @@map("wallets")
+}
+
+model LedgerEntry {
+  id                    String   @id @default(cuid())
+  walletId              String
+  
+  // Double-entry bookkeeping
+  entryType             LedgerEntryType
+  debitAmount           Decimal  @default(0)
+  creditAmount          Decimal  @default(0)
+  balance               Decimal  // Balance after this entry
+  
+  // Transaction Reference
+  transactionId         String?
+  reference             String   @unique // Unique reference for this entry
+  externalReference     String? // External system reference
+  
+  // Accounting Details
+  accountCode           String   // Accounting account code
+  description           String
+  metadata              Json? // Additional transaction metadata
+  
+  // Status & Verification
+  status                LedgerStatus @default(PENDING)
+  verifiedBy            String? // Who verified this entry
+  verificationDate      DateTime?
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  entryDate             DateTime @default(now()) // Accounting entry date
+  
+  // Relationships
+  wallet                Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  transaction           Transaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  
+  @@index([walletId, entryDate])
+  @@index([reference])
+  @@index([accountCode])
+  @@map("ledger_entries")
+}
+
+model Transaction {
+  id                    String   @id @default(cuid())
+  walletId              String
+  
+  // Transaction Details
+  type                  TransactionType
+  amount                Decimal
+  currency              String   @default("NGN")
+  description           String
+  
+  // Status & Flow
+  status                TransactionStatus @default(PENDING)
+  direction             TransactionDirection // INCOMING or OUTGOING
+  
+  // References
+  reference             String   @unique // Internal reference
+  externalReference   String? // External system reference
+  providerReference   String? // Payment provider reference
+  
+  // Counterparty Information
+  counterpartyName    String?
+  counterpartyAccount String?
+  counterpartyBank    String?
+  
+  // Fees & Charges
+  feeAmount           Decimal  @default(0)
+  feeCurrency         String   @default("NGN")
+  taxAmount           Decimal  @default(0)
+  taxCurrency         String   @default("NGN")
+  
+  // Risk & Compliance
+  riskScore           Int      @default(0) // 0-1000 risk assessment
+  complianceFlags     String[] // Compliance flags
+  sanctionsCheck      Boolean  @default(false)
+  
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  processedAt         DateTime?
+  completedAt         DateTime?
+  
+  // Relationships
+  wallet              Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  
+  // Financial Relationships
+  ledgerEntries       LedgerEntry[]
+  escrowTransactions  EscrowTransaction[]
+  auditLogs           AuditLog[]
+  
+  @@index([walletId, createdAt])
+  @@index([reference])
+  @@index([status])
+  @@map("transactions")
+}
+
+model EscrowAccount {
+  id                    String   @id @default(cuid())
+  walletId              String
+  
+  // Escrow Details
+  accountNumber         String   @unique
+  type                  EscrowType
+  purpose               String // Description of escrow purpose
+  
+  // Parties Involved
+  buyerWalletId         String? // Buyer wallet reference
+  sellerWalletId        String? // Seller wallet reference
+  agentWalletId         String? // Escrow agent wallet reference
+  
+  // Financial Details
+  amount                Decimal
+  currency              String   @default("NGN")
+  feeAmount             Decimal  @default(0)
+  
+  // Terms & Conditions
+  releaseConditions     Json // JSON object with release conditions
+  expiryDate            DateTime?
+  
+  // Status & Flow
+  status                EscrowStatus @default(PENDING)
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  releasedAt            DateTime?
+  
+  // Relationships
+  wallet                Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  transactions          EscrowTransaction[]
+  auditLogs             AuditLog[]
+  
+  @@map("escrow_accounts")
+}
+
+model EscrowTransaction {
+  id                    String   @id @default(cuid())
+  escrowAccountId       String
+  transactionId         String   @unique
+  
+  // Transaction Details
+  type                  EscrowTransactionType
+  amount                Decimal
+  description           String
+  
+  // Status & Verification
+  status                TransactionStatus @default(PENDING)
+  authorizedBy          String? // Who authorized this transaction
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  processedAt           DateTime?
+  
+  // Relationships
+  escrowAccount         EscrowAccount @relation(fields: [escrowAccountId], references: [id], onDelete: Cascade)
+  transaction           Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  
+  @@map("escrow_transactions")
+}
+
+// ============================================
+// MARKETPLACE & ECOMMERCE
+// ============================================
+
+model Product {
+  id                    String   @id @default(cuid())
+  businessProfileId     String
+  
+  // Product Details
+  name                  String
+  description           String
+  sku                   String?  @unique // Stock Keeping Unit
+  barcode               String?  @unique
+  
+  // Pricing
+  price                 Decimal
+  currency              String   @default("NGN")
+  compareAtPrice        Decimal? // Original price before discount
+  costPrice             Decimal? // Cost to business
+  
+  // Inventory
+  inventoryQuantity     Int      @default(0)
+  inventoryPolicy        InventoryPolicy @default(DENY)
+  
+  // Categories & Classification
+  category              String?
+  subcategory           String?
+  tags                  String[]
+  
+  // Media & Content
+  images                String[] // Array of image URLs
+  documents             String[] // Product documents, certificates
+  
+  // Status & Visibility
+  status                ProductStatus @default(DRAFT)
+  isActive              Boolean  @default(true)
+  
+  // Compliance & Regulation
+  requiresLicense       Boolean  @default(false)
+  licenseRequired       String[] // Types of licenses required
+  regulatoryApproval    Boolean  @default(false)
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  publishedAt           DateTime?
+  
+  // Relationships
+  businessProfile       BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  
+  // Commerce Relationships
+  orderItems            OrderItem[]
+  reviews               Review[]
+  auditLogs             AuditLog[]
+  
+  @@index([businessProfileId, status])
+  @@index([category, subcategory])
+  @@map("products")
+}
+
+model Order {
+  id                    String   @id @default(cuid())
+  userId                String
+  businessProfileId     String?
+  
+  // Order Details
+  orderNumber           String   @unique
+  type                  OrderType @default(STANDARD)
+  
+  // Financial
+  subtotal              Decimal
+  taxAmount             Decimal  @default(0)
+  shippingAmount        Decimal  @default(0)
+  discountAmount        Decimal  @default(0)
+  totalAmount           Decimal
+  currency              String   @default("NGN")
+  
+  // Status & Flow
+  status                OrderStatus @default(PENDING)
+  paymentStatus         PaymentStatus @default(PENDING)
+  fulfillmentStatus     FulfillmentStatus @default(PENDING)
+  
+  // Customer Information
+  customerEmail         String
+  customerPhone         String?
+  customerName          String
+  
+  // Shipping & Delivery
+  shippingAddress       Json? // Complete shipping address
+  billingAddress        Json? // Complete billing address
+  
+  // References
+  reference             String   @unique
+  externalReference     String?
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  paidAt                DateTime?
+  fulfilledAt           DateTime?
+  cancelledAt           DateTime?
+  
+  // Relationships
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessProfile       BusinessProfile? @relation(fields: [businessProfileId], references: [id], onDelete: SetNull)
+  
+  // Order Relationships
+  items                 OrderItem[]
+  transactions          Transaction[]
+  escrowAccounts        EscrowAccount[]
+  auditLogs             AuditLog[]
+  
+  @@index([userId, createdAt])
+  @@index([orderNumber])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id                    String   @id @default(cuid())
+  orderId               String
+  productId             String
+  
+  // Item Details
+  name                  String // Product name at time of order
+  sku                   String?
+  quantity              Int
+  unitPrice             Decimal // Price per unit at time of order
+  totalPrice            Decimal // quantity * unitPrice
+  
+  // Variants & Options
+  variant               String? // Product variant selected
+  options               Json? // Selected options
+  
+  // Status
+  fulfillmentStatus     FulfillmentStatus @default(PENDING)
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relationships
+  order                 Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product               Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  
+  @@unique([orderId, productId, variant])
+  @@map("order_items")
+}
+
+model Review {
+  id                    String   @id @default(cuid())
+  productId             String
+  userId                String
+  orderId               String?
+  
+  // Review Content
+  rating                Int      // 1-5 star rating
+  title                 String?
+  content               String
+  
+  // Media
+  images                String[] // Review images
+  
+  // Verification
+  verifiedPurchase      Boolean  @default(false)
+  
+  // Status
+  status                ReviewStatus @default(PENDING)
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relationships
+  product               Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([productId, userId])
+  @@map("reviews")
+}
+
+// ============================================
+// GOVERNMENT INTEGRATION & COMPLIANCE
+// ============================================
+
+model CACRecord {
+  id                    String   @id @default(cuid())
+  userId                String
+  
+  // CAC Details
+  rcNumber              String   @unique // Registration Number
+  companyName           String
+  companyType           String
+  registrationDate      DateTime
+  
+  // Directors & Officers
+  directors             Json // Array of director information
+  shareholders          Json // Array of shareholder information
+  
+  // Address & Contact
+  registeredAddress     Json
+  businessAddress       Json?
+  
+  // Status & Compliance
+  status                CACStatus @default(ACTIVE)
+  annualReturnsDue      DateTime?
+  annualReturnsFiled    Boolean  @default(false)
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  lastSyncAt            DateTime?
+  
+  // Relationships
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cacApplications       CACApplication[]
+  
+  @@map("cac_records")
+}
+
+model CACApplication {
+  id                    String   @id @default(cuid())
+  businessProfileId     String
+  
+  // Application Details
+  applicationType       CACApplicationType
+  proposedName          String
+  alternativeNames      String[]
+  
+  // Business Details
+  businessNature        String
+  objectives            String[]
+  
+  // Share Capital
+  authorizedCapital     Decimal
+  paidUpCapital         Decimal
+  
+  // Parties
+  directors             Json // Director information
+  shareholders          Json // Shareholder information
+  secretary             Json? // Company secretary information
+  
+  // Documents
+  documents             String[] // Uploaded documents
+  
+  // Status & Processing
+  status                ApplicationStatus @default(DRAFT)
+  submissionId          String? // CAC portal submission ID
+  trackingNumber        String? @unique
+  
+  // Processing Details
+  submittedAt           DateTime?
+  approvedAt            DateTime?
+  rejectedAt            DateTime?
+  rejectionReason     String?
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relationships
+  businessProfile       BusinessProfile @relation(fields: [businessProfileId], references: [id], onDelete: Cascade)
+  
+  @@map("cac_applications")
+}
+
+model TaxRecord {
+  id                    String   @id @default(cuid())
+  userId                String
+  
+  // Tax Details
+  tin                   String   @unique // Tax Identification Number
+  taxOffice             String
+  taxpayerType          TaxpayerType
+  
+  // Registration
+  registrationDate      DateTime?
+  
+  // Status & Compliance
+  status                TaxStatus @default(ACTIVE)
+  filingStatus          FilingStatus @default(COMPLIANT)
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  lastFilingDate        DateTime?
+  
+  // Relationships
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taxReturns            TaxReturn[]
+  
+  @@map("tax_records")
+}
+
+model TaxReturn {
+  id                    String   @id @default(cuid())
+  taxRecordId           String
+  businessProfileId     String?
+  
+  // Return Details
+  taxYear               Int
+  taxForm               TaxFormType
+  filingType            FilingType
+  
+  // Financial Information
+  grossIncome           Decimal
+  allowableDeductions   Decimal  @default(0)
+  taxableIncome         Decimal
+  taxPayable            Decimal
+  taxPaid               Decimal  @default(0)
+  
+  // Status & Processing
+  status                FilingStatus @default(DRAFT)
+  assessmentStatus      AssessmentStatus @default(PENDING)
+  
+  // References
+  referenceNumber       String   @unique
+  acknowledgmentNumber  String? // From tax authority
+  
+  // Documents
+  supportingDocuments   String[] // Uploaded documents
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  filedAt               DateTime?
+  assessedAt            DateTime?
+  
+  // Relationships
+  taxRecord             TaxRecord @relation(fields: [taxRecordId], references: [id], onDelete: Cascade)
+  businessProfile       BusinessProfile? @relation(fields: [businessProfileId], references: [id], onDelete: SetNull)
+  
+  @@unique([taxRecordId, taxYear, taxForm])
+  @@map("tax_returns")
+}
+
+// ============================================
+// AUDIT & COMPLIANCE
+// ============================================
+
+model AuditLog {
+  id                    String   @id @default(cuid())
+  
+  // Audit Details
+  action                AuditAction
+  resourceType          String // Type of resource affected
+  resourceId            String? // ID of resource affected
+  
+  // Actor Information
+  userId                String? // Who performed the action
+  walletId              String? // Which wallet was involved
+  systemId              String? // System component that performed action
+  
+  // Details
+  details               Json // Detailed action information
+  metadata              Json? // Additional metadata
+  
+  // Risk & Compliance
+  riskLevel             RiskLevel @default(LOW)
+  complianceFlags       String[] // Compliance-related flags
+  
+  // Geographic & Technical
+  ipAddress             String?
+  userAgent             String?
+  country               String?
+  city                  String?
+  
+  // Immutable Hash
+  previousHash          String? // Hash of previous audit log
+  currentHash           String // Hash of this log entry
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  
+  // Relationships
+  user                  User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  wallet                Wallet?  @relation(fields: [walletId], references: [id], onDelete: SetNull)
+  
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+  @@index([resourceType, resourceId])
+  @@map("audit_logs")
+}
+
+model ActivityLog {
+  id                    String   @id @default(cuid())
+  userId                String
+  
+  // Activity Details
+  type                  ActivityType
+  description           String
+  metadata              Json?
+  
+  // Technical Details
+  ipAddress             String?
+  userAgent             String?
+  deviceInfo            String?
+  
+  // Geographic
+  country               String?
+  city                  String?
+  coordinates           String? // Lat,Long
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  
+  // Relationships
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, type, createdAt])
+  @@map("activity_logs")
+}
+
+// ============================================
+// NOTIFICATIONS & COMMUNICATIONS
+// ============================================
+
+model Notification {
+  id                    String   @id @default(cuid())
+  userId                String
+  
+  // Notification Details
+  type                  NotificationType
+  title                 String
+  message               String
+  
+  // Priority & Urgency
+  priority              NotificationPriority @default(NORMAL)
+  urgent                Boolean  @default(false)
+  
+  // Delivery Channels
+  channels              NotificationChannel[]
+  
+  // Status
+  read                  Boolean  @default(false)
+  readAt                DateTime?
+  
+  // Actions
+  actionUrl             String? // URL for action
+  actionText            String? // Text for action button
+  
+  // Metadata
+  metadata              Json?
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  expiresAt             DateTime?
+  
+  // Relationships
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, read, createdAt])
+  @@index([type, createdAt])
+  @@map("notifications")
+}
+
+model Session {
+  id                    String   @id @default(cuid())
+  userId                String
+  
+  // Session Details
+  token                 String   @unique
+  type                  SessionType @default(WEB)
+  
+  // Device Information
+  deviceId              String?
+  deviceInfo            String?
+  platform              String?
+  browser               String?
+  
+  // Geographic
+  ipAddress             String?
+  country               String?
+  city                  String?
+  
+  // Security
+  refreshToken          String?
+  expiresAt             DateTime
+  revokedAt             DateTime?
+  revokeReason          String?
+  
+  // MFA Information
+  mfaVerified           Boolean  @default(false)
+  mfaMethods            String[] // MFA methods used
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  lastActivityAt        DateTime @default(now())
+  
+  // Relationships
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, createdAt])
+  @@index([token])
+  @@map("sessions")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+  DELETED
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  GOVERNMENT_OFFICIAL
+  BUSINESS_OWNER
+  INDIVIDUAL_USER
+  GUEST
+  SERVICE_ACCOUNT
+}
+
+enum WalletType {
+  STANDARD
+  BUSINESS
+  GOVERNMENT
+  ESCROW
+  MERCHANT
+  SETTLEMENT
+}
+
+enum WalletStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  FROZEN
+  CLOSED
+}
+
+enum LedgerEntryType {
+  DEBIT
+  CREDIT
+}
+
+enum LedgerStatus {
+  PENDING
+  VERIFIED
+  RECONCILED
+  ADJUSTED
+  CANCELLED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+  PAYMENT
+  REFUND
+  FEE
+  TAX
+  ESCROW
+  SETTLEMENT
+}
+
+enum TransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REVERSED
+}
+
+enum TransactionDirection {
+  INCOMING
+  OUTGOING
+}
+
+enum EscrowType {
+  PURCHASE
+  SERVICE
+  MILESTONE
+  DISPUTE
+  GOVERNMENT
+}
+
+enum EscrowStatus {
+  PENDING
+  FUNDED
+  RELEASED
+  DISPUTED
+  CANCELLED
+  EXPIRED
+}
+
+enum EscrowTransactionType {
+  FUND
+  RELEASE
+  REFUND
+  DISPUTE
+  CANCEL
+}
+
+enum OrderType {
+  STANDARD
+  PREORDER
+  BACKORDER
+  QUOTE
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  PAID
+  PARTIALLY_PAID
+  REFUNDED
+  CANCELLED
+}
+
+enum FulfillmentStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  RETURNED
+  CANCELLED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum InventoryPolicy {
+  DENY
+  CONTINUE
+}
+
+enum BusinessType {
+  SOLE_PROPRIETORSHIP
+  PARTNERSHIP
+  LIMITED_LIABILITY_COMPANY
+  PUBLIC_LIMITED_COMPANY
+  NONPROFIT
+  GOVERNMENT_AGENCY
+}
+
+enum BusinessStatus {
+  PENDING
+  VERIFIED
+  SUSPENDED
+  REJECTED
+}
+
+enum CACStatus {
+  ACTIVE
+  INACTIVE
+  DISSOLVED
+  STRUCK_OFF
+}
+
+enum CACApplicationType {
+  NEW_REGISTRATION
+  BUSINESS_NAME
+  INCORPORATED_TRUSTEE
+  LIMITED_PARTNERSHIP
+  LIMITED_LIABILITY_PARTNERSHIP
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum TaxpayerType {
+  INDIVIDUAL
+  CORPORATE
+  GOVERNMENT
+  NONPROFIT
+}
+
+enum TaxStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum FilingStatus {
+  COMPLIANT
+  PENDING
+  OVERDUE
+  DELINQUENT
+}
+
+enum TaxFormType {
+  FORM_A
+  FORM_B
+  FORM_C
+  VAT_FORM
+  PAYE_FORM
+  WHT_FORM
+  CIT_FORM
+}
+
+enum FilingType {
+  INITIAL
+  AMENDED
+  LATE
+  EXTENSION
+}
+
+enum AssessmentStatus {
+  PENDING
+  ASSESSED
+  DISPUTED
+  PAID
+}
+
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  TRANSFER
+  PAYMENT
+  WITHDRAWAL
+  DEPOSIT
+  APPROVE
+  REJECT
+  SUSPEND
+  ACTIVATE
+  CONFIGURE
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ActivityType {
+  LOGIN
+  LOGOUT
+  PROFILE_UPDATE
+  PASSWORD_CHANGE
+  TRANSACTION
+  ORDER_PLACED
+  ORDER_CANCELLED
+  DOCUMENT_UPLOAD
+  VERIFICATION
+}
+
+enum NotificationType {
+  TRANSACTION
+  SECURITY
+  MARKETING
+  SYSTEM
+  GOVERNMENT
+  COMPLIANCE
+  ORDER
+  PAYMENT
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+  IN_APP
+  WEBHOOK
+}
+
+enum SessionType {
+  WEB
+  MOBILE
+  API
+  SYSTEM
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FLAGGED
+}

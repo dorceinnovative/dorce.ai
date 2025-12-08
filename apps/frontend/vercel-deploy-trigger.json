@@ -1,0 +1,23 @@
+{
+  "forceRedeploy": true,
+  "clearCache": true,
+  "deploymentMessage": "🚀 FORCE REDEPLOY: Apple-style National OS Landing Page with 69 Apps Showcase",
+  "environment": {
+    "NEXT_PUBLIC_API_URL": "https://dorceai-production.up.railway.app",
+    "NEXT_PUBLIC_BACKEND_URL": "https://dorceai-production.up.railway.app",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "buildSettings": {
+    "framework": "nextjs",
+    "installCommand": "npm install",
+    "buildCommand": "npm run build"
+  },
+  "features": {
+    "appleStyleLanding": true,
+    "nationalOSShowcase": true,
+    "sixtyNineAppsIntegrated": true,
+    "revolutionaryLandingComponent": true,
+    "professionalLogo": true,
+    "deepLinksToModules": true
+  }
+}

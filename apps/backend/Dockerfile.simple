@@ -1,0 +1,12 @@
+FROM node:18-bullseye
+
+WORKDIR /app
+
+# Copy the simple health check server
+COPY simple-health.js ./
+
+# Expose port
+EXPOSE 4000
+
+# Start the simple health server
+CMD ["node", "simple-health.js"]

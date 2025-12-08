@@ -1,0 +1,39 @@
+<svg width="320" height="320" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="center" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <circle cx="160" cy="160" r="150" fill="none" stroke="url(#ring)" stroke-width="14"/>
+  <circle cx="160" cy="160" r="100" fill="url(#center)"/>
+  <circle cx="160" cy="160" r="70" fill="none" stroke="#374151" stroke-width="1" opacity="0.4"/>
+  <circle cx="160" cy="160" r="40" fill="none" stroke="#374151" stroke-width="1" opacity="0.25"/>
+  <g font-family="Inter, Arial, sans-serif" font-size="14" fill="#e5e7eb" text-anchor="middle">
+    <g>
+      <circle cx="160" cy="22" r="20" fill="#0ea5e9"/>
+      <text x="160" y="60">Wallet</text>
+      <text x="160" y="78" fill="#93c5fd">Paystack Custody</text>
+    </g>
+    <g>
+      <circle cx="298" cy="160" r="20" fill="#8b5cf6"/>
+      <text x="260" y="160">VTU</text>
+      <text x="260" y="178" fill="#d8b4fe">Airtime & Data</text>
+    </g>
+    <g>
+      <circle cx="160" cy="298" r="20" fill="#f59e0b"/>
+      <text x="160" y="254">Marketplace</text>
+      <text x="160" y="272" fill="#fde68a">Vendors & RFQ</text>
+    </g>
+    <g>
+      <circle cx="22" cy="160" r="20" fill="#22c55e"/>
+      <text x="60" y="160">NIN/CAC Agent</text>
+      <text x="80" y="178" fill="#86efac">Enrollment & Cards</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,304 @@
+/* Nigerian Cultural Design System */
+
+/* Nigerian Flag Colors */
+:root {
+  /* Primary Nigerian Colors */
+  --nigeria-green: #008751;
+  --nigeria-white: #FFFFFF;
+  --nigeria-gold: #FFD700;
+  
+  /* Extended Nigerian Palette */
+  --nigeria-green-light: #00C853;
+  --nigeria-green-dark: #00695C;
+  --nigeria-earth-brown: #8D6E63;
+  --nigeria-sunset-orange: #FF6F00;
+  --nigeria-sunset-light: #FFB74D;
+  
+  /* Ankara Pattern Colors */
+  --ankara-red: #D32F2F;
+  --ankara-blue: #1976D2;
+  --ankara-yellow: #FBC02D;
+  --ankara-purple: #7B1FA2;
+  --ankara-teal: #00796B;
+  
+  /* Cultural Gradient Stops */
+  --gradient-nigeria: linear-gradient(135deg, var(--nigeria-green) 0%, var(--nigeria-green-light) 50%, var(--nigeria-gold) 100%);
+  --gradient-afro-futuristic: linear-gradient(45deg, var(--nigeria-green) 0%, var(--nigeria-earth-brown) 25%, var(--nigeria-sunset-orange) 50%, var(--nigeria-gold) 75%, var(--nigeria-green-light) 100%);
+  --gradient-ankara: conic-gradient(from 0deg, var(--ankara-red), var(--ankara-blue), var(--ankara-yellow), var(--ankara-purple), var(--ankara-teal), var(--ankara-red));
+}
+
+/* Ankara Pattern Backgrounds */
+.ankara-pattern {
+  background-image: 
+    radial-gradient(circle at 25% 25%, var(--ankara-red) 2px, transparent 2px),
+    radial-gradient(circle at 75% 75%, var(--ankara-blue) 2px, transparent 2px),
+    radial-gradient(circle at 75% 25%, var(--ankara-yellow) 2px, transparent 2px),
+    radial-gradient(circle at 25% 75%, var(--ankara-purple) 2px, transparent 2px);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px, 20px 0, 0 20px;
+  animation: ankara-float 20s ease-in-out infinite;
+}
+
+.ankara-pattern-subtle {
+  background-image: 
+    radial-gradient(circle at 20% 20%, rgba(211, 47, 47, 0.1) 1px, transparent 1px),
+    radial-gradient(circle at 80% 80%, rgba(25, 118, 210, 0.1) 1px, transparent 1px);
+  background-size: 60px 60px;
+  background-position: 0 0, 30px 30px;
+}
+
+.ankara-geometric {
+  background: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    var(--ankara-red) 0deg 90deg,
+    var(--ankara-blue) 90deg 180deg,
+    var(--ankara-yellow) 180deg 270deg,
+    var(--ankara-purple) 270deg 360deg
+  );
+  background-size: 80px 80px;
+  opacity: 0.1;
+  animation: geometric-rotate 30s linear infinite;
+}
+
+/* Nigerian Flag Inspired Elements */
+.nigeria-flag-gradient {
+  background: var(--gradient-nigeria);
+  position: relative;
+  overflow: hidden;
+}
+
+.nigeria-flag-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    var(--nigeria-green) 0%,
+    var(--nigeria-green) 33.33%,
+    var(--nigeria-white) 33.33%,
+    var(--nigeria-white) 66.66%,
+    var(--nigeria-green) 66.66%,
+    var(--nigeria-green) 100%
+  );
+  opacity: 0.2;
+  animation: flag-wave 3s ease-in-out infinite;
+}
+
+/* Afro-Futuristic Glassmorphism */
+.afro-glass {
+  background: rgba(0, 135, 81, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 135, 81, 0.1),
+    inset 0 1px 0 rgba(255, 215, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.afro-glass:hover {
+  background: rgba(0, 135, 81, 0.15);
+  border-color: rgba(255, 215, 0, 0.3);
+  box-shadow: 
+    0 12px 40px rgba(0, 135, 81, 0.2),
+    inset 0 1px 0 rgba(255, 215, 0, 0.2);
+}
+
+/* Nigerian Typography System */
+.nigerian-heading {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 800;
+  background: var(--gradient-nigeria);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 135, 81, 0.3);
+}
+
+.nigerian-text-primary {
+  color: var(--nigeria-green);
+  font-weight: 600;
+}
+
+.nigerian-text-accent {
+  color: var(--nigeria-gold);
+  font-weight: 700;
+}
+
+/* Cultural Animation System */
+@keyframes ankara-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(1deg); }
+  50% { transform: translateY(-5px) rotate(-1deg); }
+  75% { transform: translateY(-15px) rotate(0.5deg); }
+}
+
+@keyframes geometric-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes flag-wave {
+  0%, 100% { transform: scaleX(1) skewX(0deg); }
+  25% { transform: scaleX(1.02) skewX(1deg); }
+  50% { transform: scaleX(1) skewX(0deg); }
+  75% { transform: scaleX(1.02) skewX(-1deg); }
+}
+
+@keyframes naija-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 135, 81, 0.7);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(0, 135, 81, 0);
+  }
+}
+
+@keyframes naija-glow {
+  0%, 100% { 
+    text-shadow: 
+      0 0 5px rgba(255, 215, 0, 0.5),
+      0 0 10px rgba(255, 215, 0, 0.3),
+      0 0 15px rgba(255, 215, 0, 0.1);
+  }
+  50% { 
+    text-shadow: 
+      0 0 10px rgba(255, 215, 0, 0.8),
+      0 0 20px rgba(255, 215, 0, 0.5),
+      0 0 30px rgba(255, 215, 0, 0.2);
+  }
+}
+
+/* Nigerian Button Styles */
+.naija-button {
+  background: var(--gradient-nigeria);
+  border: none;
+  color: white;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.naija-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 215, 0, 0.4),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.naija-button:hover::before {
+  left: 100%;
+}
+
+.naija-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 135, 81, 0.4);
+}
+
+.naija-button-secondary {
+  background: transparent;
+  border: 2px solid var(--nigeria-green);
+  color: var(--nigeria-green);
+  font-weight: 600;
+}
+
+.naija-button-secondary:hover {
+  background: var(--nigeria-green);
+  color: white;
+}
+
+/* Cultural Card Styles */
+.naija-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 
+    0 4px 20px rgba(0, 135, 81, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 135, 81, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.naija-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-nigeria);
+}
+
+.naija-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 8px 30px rgba(0, 135, 81, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Nigerian Cultural Icons */
+.naija-icon-green {
+  color: var(--nigeria-green);
+  filter: drop-shadow(0 2px 4px rgba(0, 135, 81, 0.3));
+}
+
+.naija-icon-gold {
+  color: var(--nigeria-gold);
+  filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
+}
+
+/* Responsive Cultural Elements */
+@media (max-width: 768px) {
+  .ankara-pattern {
+    background-size: 30px 30px;
+  }
+  
+  .naija-button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .naija-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+}
+
+/* Dark Mode Cultural Adaptations */
+@media (prefers-color-scheme: dark) {
+  .afro-glass {
+    background: rgba(0, 135, 81, 0.2);
+    border-color: rgba(255, 215, 0, 0.3);
+  }
+  
+  .naija-card {
+    background: rgba(26, 26, 26, 0.95);
+    border-color: rgba(0, 135, 81, 0.2);
+  }
+  
+  .ankara-pattern-subtle {
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(211, 47, 47, 0.05) 1px, transparent 1px),
+      radial-gradient(circle at 80% 80%, rgba(25, 118, 210, 0.05) 1px, transparent 1px);
+  }
+}

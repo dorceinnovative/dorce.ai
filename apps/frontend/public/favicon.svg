@@ -1,0 +1,17 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="32" height="32" rx="8" fill="url(#gradient1)"/>
+  
+  <!-- D Letter -->
+  <path d="M8 8 L8 24 L16 24 C20 24 23 21 23 17 C23 13 20 10 16 10 L14 10 L14 8" fill="white"/>
+  
+  <!-- AI Dot -->
+  <circle cx="24" cy="8" r="2" fill="#00D4FF"/>
+  
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E3A8A"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+</svg>

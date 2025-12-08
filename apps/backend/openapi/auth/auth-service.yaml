@@ -1,0 +1,1094 @@
+openapi: 3.0.3
+info:
+  title: Dorce OS Authentication Service API
+  description: |
+    National-grade authentication service for Dorce OS Business Operating System.
+    Provides secure user authentication, MFA, biometric verification, and government identity integration.
+  version: 1.0.0
+  contact:
+    name: Dorce OS Security Team
+    email: security@dorce.ai
+    url: https://dorce.ai/security
+  license:
+    name: National Grade License
+    url: https://dorce.ai/license
+
+servers:
+  - url: https://api.dorce.ai/v1/auth
+    description: Production server
+  - url: https://staging-api.dorce.ai/v1/auth
+    description: Staging server
+  - url: http://localhost:3000/v1/auth
+    description: Development server
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+paths:
+  /register:
+    post:
+      summary: Register new user
+      description: Register a new user with comprehensive identity verification
+      operationId: registerUser
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /login:
+    post:
+      summary: User login
+      description: Authenticate user with email/password and optional MFA
+      operationId: loginUser
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Account suspended or requires verification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /verify-mfa:
+    post:
+      summary: Verify MFA code
+      description: Complete MFA verification process
+      operationId: verifyMFA
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MFAVerifyRequest'
+      responses:
+        '200':
+          description: MFA verification successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MFAVerifyResponse'
+        '400':
+          description: Invalid MFA code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /refresh:
+    post:
+      summary: Refresh access token
+      description: Get new access token using refresh token
+      operationId: refreshToken
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /logout:
+    post:
+      summary: User logout
+      description: Invalidate user session and tokens
+      operationId: logoutUser
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+
+  /profile:
+    get:
+      summary: Get user profile
+      description: Retrieve authenticated user profile information
+      operationId: getProfile
+      tags:
+        - Profile
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      summary: Update user profile
+      description: Update authenticated user profile information
+      operationId: updateProfile
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+
+  /verify-identity:
+    post:
+      summary: Verify government identity
+      description: Verify user identity against government databases (NIN, BVN, etc.)
+      operationId: verifyIdentity
+      tags:
+        - Identity Verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentityVerificationRequest'
+      responses:
+        '200':
+          description: Identity verification initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityVerificationResponse'
+        '400':
+          description: Invalid identity data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /verify-biometric:
+    post:
+      summary: Verify biometric data
+      description: Verify user biometric data (fingerprint, facial recognition)
+      operationId: verifyBiometric
+      tags:
+        - Identity Verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BiometricVerificationRequest'
+      responses:
+        '200':
+          description: Biometric verification successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BiometricVerificationResponse'
+
+  /sessions:
+    get:
+      summary: Get active sessions
+      description: Retrieve all active user sessions
+      operationId: getSessions
+      tags:
+        - Session Management
+      responses:
+        '200':
+          description: Sessions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionsResponse'
+
+    delete:
+      summary: Revoke all sessions
+      description: Revoke all active user sessions except current
+      operationId: revokeSessions
+      tags:
+        - Session Management
+      responses:
+        '200':
+          description: Sessions revoked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeSessionsResponse'
+
+  /sessions/{sessionId}:
+    delete:
+      summary: Revoke specific session
+      description: Revoke a specific user session
+      operationId: revokeSession
+      tags:
+        - Session Management
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Session ID to revoke
+      responses:
+        '200':
+          description: Session revoked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeSessionResponse'
+
+  /security/change-password:
+    post:
+      summary: Change password
+      description: Change user password with current password verification
+      operationId: changePassword
+      tags:
+        - Security
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePasswordResponse'
+
+  /security/reset-password:
+    post:
+      summary: Reset password
+      description: Initiate password reset process
+      operationId: resetPassword
+      tags:
+        - Security
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordResponse'
+
+  /security/setup-mfa:
+    post:
+      summary: Setup MFA
+      description: Setup multi-factor authentication for user
+      operationId: setupMFA
+      tags:
+        - Security
+      responses:
+        '200':
+          description: MFA setup initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetupMFAResponse'
+
+  /security/disable-mfa:
+    post:
+      summary: Disable MFA
+      description: Disable multi-factor authentication for user
+      operationId: disableMFA
+      tags:
+        - Security
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisableMFARequest'
+      responses:
+        '200':
+          description: MFA disabled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisableMFAResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT authentication token
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for service-to-service authentication
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+        - phone
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User password (minimum 8 characters)
+          example: SecurePass123!
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: User first name
+          example: John
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: User last name
+          example: Doe
+        middleName:
+          type: string
+          maxLength: 50
+          description: User middle name
+          example: Smith
+        phone:
+          type: string
+          pattern: '^\+?[1-9]\d{1,14}$'
+          description: Phone number in international format
+          example: '+2348012345678'
+        dateOfBirth:
+          type: string
+          format: date
+          description: Date of birth (YYYY-MM-DD)
+          example: '1990-01-01'
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY]
+          description: User gender
+        nationality:
+          type: string
+          maxLength: 2
+          description: ISO 3166-1 alpha-2 country code
+          example: NG
+        address:
+          type: string
+          maxLength: 500
+          description: User address
+        nin:
+          type: string
+          pattern: '^\d{11}$'
+          description: National Identification Number (11 digits)
+          example: '12345678901'
+        bvn:
+          type: string
+          pattern: '^\d{11}$'
+          description: Bank Verification Number (11 digits)
+          example: '12345678901'
+        acceptTerms:
+          type: boolean
+          description: User acceptance of terms and conditions
+          example: true
+
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: User registered successfully
+        data:
+          type: object
+          properties:
+            userId:
+              type: string
+              example: 'user_123456789'
+            email:
+              type: string
+              format: email
+              example: user@example.com
+            verificationRequired:
+              type: boolean
+              description: Whether email verification is required
+              example: true
+            nextSteps:
+              type: array
+              items:
+                type: string
+              example: ['Check email for verification link', 'Complete identity verification']
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          description: User password
+          example: SecurePass123!
+        rememberMe:
+          type: boolean
+          description: Extend session duration
+          example: false
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: JWT access token
+              example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+            refreshToken:
+              type: string
+              description: Refresh token for token renewal
+              example: 'refresh_token_123456789'
+            tokenType:
+              type: string
+              example: Bearer
+            expiresIn:
+              type: integer
+              description: Token expiration time in seconds
+              example: 3600
+            user:
+              $ref: '#/components/schemas/UserProfile'
+            requiresMFA:
+              type: boolean
+              description: Whether MFA verification is required
+              example: false
+            mfaMethods:
+              type: array
+              items:
+                type: string
+              example: ['SMS', 'AUTHENTICATOR']
+
+    MFAVerifyRequest:
+      type: object
+      required:
+        - token
+        - method
+      properties:
+        token:
+          type: string
+          description: MFA verification code
+          example: '123456'
+        method:
+          type: string
+          enum: [SMS, AUTHENTICATOR, EMAIL, BIOMETRIC]
+          description: MFA method used
+          example: SMS
+        sessionId:
+          type: string
+          description: Session ID from login response
+          example: 'session_123456789'
+
+    MFAVerifyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: JWT access token
+              example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+            refreshToken:
+              type: string
+              description: Refresh token
+              example: 'refresh_token_123456789'
+            user:
+              $ref: '#/components/schemas/UserProfile'
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'user_123456789'
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        phone:
+          type: string
+          example: '+2348012345678'
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        middleName:
+          type: string
+          example: Smith
+        fullName:
+          type: string
+          example: John Smith Doe
+        dateOfBirth:
+          type: string
+          format: date
+          example: '1990-01-01'
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY]
+        nationality:
+          type: string
+          example: NG
+        stateOfOrigin:
+          type: string
+          example: Lagos
+        lga:
+          type: string
+          example: Ikeja
+        address:
+          type: string
+          example: '123 Main Street, Lagos, Nigeria'
+        profileImage:
+          type: string
+          format: uri
+          example: 'https://cdn.dorce.ai/profiles/user_123.jpg'
+        nin:
+          type: string
+          example: '12345678901'
+        bvn:
+          type: string
+          example: '12345678901'
+        identityScore:
+          type: integer
+          minimum: 0
+          maximum: 1000
+          example: 850
+        verificationStatus:
+          type: object
+          properties:
+            email:
+              type: boolean
+              example: true
+            phone:
+              type: boolean
+              example: true
+            nin:
+              type: boolean
+              example: true
+            bvn:
+              type: boolean
+              example: true
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [SUPER_ADMIN, ADMIN, GOVERNMENT_OFFICIAL, BUSINESS_OWNER, INDIVIDUAL_USER, GUEST]
+          example: ['INDIVIDUAL_USER']
+        permissions:
+          type: array
+          items:
+            type: string
+          example: ['read:profile', 'update:profile']
+        status:
+          type: string
+          enum: [PENDING, ACTIVE, SUSPENDED, DEACTIVATED]
+          example: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+          example: '2023-01-01T00:00:00Z'
+        lastLoginAt:
+          type: string
+          format: date-time
+          example: '2023-12-01T12:00:00Z'
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        middleName:
+          type: string
+          maxLength: 50
+        dateOfBirth:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER, PREFER_NOT_TO_SAY]
+        nationality:
+          type: string
+          maxLength: 2
+        stateOfOrigin:
+          type: string
+        lga:
+          type: string
+        address:
+          type: string
+          maxLength: 500
+        profileImage:
+          type: string
+          format: uri
+
+    RefreshRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token from login response
+          example: 'refresh_token_123456789'
+
+    RefreshResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: New JWT access token
+              example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+            tokenType:
+              type: string
+              example: Bearer
+            expiresIn:
+              type: integer
+              description: Token expiration time in seconds
+              example: 3600
+
+    LogoutResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Logout successful
+
+    IdentityVerificationRequest:
+      type: object
+      required:
+        - verificationType
+      properties:
+        verificationType:
+          type: string
+          enum: [NIN, BVN, DRIVERS_LICENSE, INTERNATIONAL_PASSPORT, VOTERS_CARD]
+          description: Type of identity document to verify
+          example: NIN
+        documentNumber:
+          type: string
+          description: Identity document number
+          example: '12345678901'
+        dateOfBirth:
+          type: string
+          format: date
+          description: Date of birth for verification
+          example: '1990-01-01'
+        firstName:
+          type: string
+          description: First name as it appears on document
+          example: John
+        lastName:
+          type: string
+          description: Last name as it appears on document
+          example: Doe
+
+    IdentityVerificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            verificationId:
+              type: string
+              example: 'verification_123456789'
+            status:
+              type: string
+              enum: [PENDING, VERIFIED, FAILED]
+              example: PENDING
+            confidenceScore:
+              type: integer
+              minimum: 0
+              maximum: 100
+              example: 95
+            matchDetails:
+              type: object
+              properties:
+                nameMatch:
+                  type: boolean
+                  example: true
+                dateOfBirthMatch:
+                  type: boolean
+                  example: true
+                photoMatch:
+                  type: boolean
+                  example: true
+            nextSteps:
+              type: array
+              items:
+                type: string
+              example: ['Wait for verification completion', 'Check status in 5 minutes']
+
+    BiometricVerificationRequest:
+      type: object
+      required:
+        - biometricType
+        - biometricData
+      properties:
+        biometricType:
+          type: string
+          enum: [FINGERPRINT, FACIAL_RECOGNITION, IRIS_SCAN, VOICE_RECOGNITION]
+          description: Type of biometric verification
+          example: FINGERPRINT
+        biometricData:
+          type: string
+          format: base64
+          description: Base64 encoded biometric data
+          example: 'base64_encoded_biometric_data'
+        deviceId:
+          type: string
+          description: Device ID for biometric capture
+          example: 'device_123456789'
+
+    BiometricVerificationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            matchScore:
+              type: integer
+              minimum: 0
+              maximum: 100
+              example: 98
+            verified:
+              type: boolean
+              example: true
+            templateStored:
+              type: boolean
+              example: true
+            attemptsRemaining:
+              type: integer
+              example: 3
+
+    SessionsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            sessions:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: 'session_123456789'
+                  type:
+                    type: string
+                    enum: [WEB, MOBILE, API]
+                    example: WEB
+                  deviceInfo:
+                    type: string
+                    example: 'Chrome 119.0 on Windows 10'
+                  platform:
+                    type: string
+                    example: Windows
+                  browser:
+                    type: string
+                    example: Chrome
+                  ipAddress:
+                    type: string
+                    example: '192.168.1.1'
+                  country:
+                    type: string
+                    example: Nigeria
+                  city:
+                    type: string
+                    example: Lagos
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: '2023-12-01T10:00:00Z'
+                  lastActivityAt:
+                    type: string
+                    format: date-time
+                    example: '2023-12-01T12:00:00Z'
+                  current:
+                    type: boolean
+                    description: Whether this is the current session
+                    example: false
+
+    RevokeSessionsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: All other sessions revoked successfully
+        data:
+          type: object
+          properties:
+            revokedCount:
+              type: integer
+              example: 3
+
+    RevokeSessionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Session revoked successfully
+
+    ChangePasswordRequest:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          description: Current password
+          example: OldPassword123!
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+          description: New password (minimum 8 characters)
+          example: NewSecurePass123!
+
+    ChangePasswordResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Password changed successfully
+        data:
+          type: object
+          properties:
+            sessionsRevoked:
+              type: boolean
+              example: true
+            requiresRelogin:
+              type: boolean
+              example: false
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: user@example.com
+
+    ResetPasswordResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Password reset instructions sent to email
+
+    SetupMFAResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            secret:
+              type: string
+              description: MFA secret for authenticator apps
+              example: 'JBSWY3DPEHPK3PXP'
+            qrCode:
+              type: string
+              description: Base64 encoded QR code image
+              example: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...'
+            backupCodes:
+              type: array
+              items:
+                type: string
+              example: ['12345678', '87654321', '11223344', '44332211']
+
+    DisableMFARequest:
+      type: object
+      required:
+        - password
+      properties:
+        password:
+          type: string
+          format: password
+          description: User password for confirmation
+          example: SecurePass123!
+
+    DisableMFAResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: MFA disabled successfully
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: INVALID_CREDENTIALS
+            message:
+              type: string
+              example: Invalid email or password
+            details:
+              type: object
+              additionalProperties: true
+            timestamp:
+              type: string
+              format: date-time
+              example: '2023-12-01T12:00:00Z'
+            path:
+              type: string
+              example: /v1/auth/login
+            requestId:
+              type: string
+              example: 'req_123456789'
