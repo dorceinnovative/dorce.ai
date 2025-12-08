@@ -31,10 +31,10 @@ export default function AdminProductsPage() {
       const data = await apiClient.getProducts()
       setProducts(data.products || [])
       try {
-        const a = await apiClient.request('/api/marketplace/transactions/airtime')
-        const e = await apiClient.request('/api/marketplace/transactions/electricity')
-        const airtime = a?.data || a?.transactions || []
-        const electricity = e?.data || e?.transactions || []
+        const a: any = await apiClient.request('/api/marketplace/transactions/airtime')
+        const e: any = await apiClient.request('/api/marketplace/transactions/electricity')
+        const airtime = a?.data ?? a?.transactions ?? []
+        const electricity = e?.data ?? e?.transactions ?? []
         const all = [...airtime, ...electricity]
         const orders = all.length
         const gmv = all.reduce((sum: number, t: any) => sum + (Number(t.amount)||0), 0)

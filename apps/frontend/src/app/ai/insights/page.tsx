@@ -21,33 +21,33 @@ export default function AIInsightsPage() {
   const runBusiness = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await apiClient.request('/api/integration/ai/business-insights', {
+      const res: any = await apiClient.request('/api/integration/ai/business-insights', {
         method: 'POST',
         body: JSON.stringify({ industry, location })
       })
-      setBusinessInsights(res?.data || res)
+      setBusinessInsights(String(res?.data ?? res))
     } catch (e: any) { setError(e?.message || 'Business insights failed') } finally { setLoading(false) }
   }
 
   const runMarket = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await apiClient.request('/api/integration/ai/market-research', {
+      const res: any = await apiClient.request('/api/integration/ai/market-research', {
         method: 'POST',
         body: JSON.stringify({ industry, location })
       })
-      setMarketResearch(res?.data || res)
+      setMarketResearch(String(res?.data ?? res))
     } catch (e: any) { setError(e?.message || 'Market research failed') } finally { setLoading(false) }
   }
 
   const runMarketing = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await apiClient.request('/api/integration/ai/marketing-content', {
+      const res: any = await apiClient.request('/api/integration/ai/marketing-content', {
         method: 'POST',
         body: JSON.stringify({ product })
       })
-      setMarketingContent(res?.data || res)
+      setMarketingContent(String(res?.data ?? res))
     } catch (e: any) { setError(e?.message || 'Marketing content failed') } finally { setLoading(false) }
   }
 
@@ -110,4 +110,3 @@ export default function AIInsightsPage() {
     </div>
   )
 }
-

@@ -24,14 +24,14 @@ export default function VendorOnboardPage() {
     if (!name || !slug) return
     setLoading(true); setError(null); setResult(null)
     try {
-      const res = await apiClient.request('/vendor/store', {
+      const res: any = await apiClient.request('/vendor/store', {
         method: 'POST',
         body: JSON.stringify({
           name, slug, description, logo, banner,
           primaryColor, secondaryColor,
         }),
       })
-      setResult(res?.data || res)
+      setResult(res?.data ?? res)
     } catch (e: any) {
       setError(e?.message || 'Onboarding failed')
     } finally { setLoading(false) }

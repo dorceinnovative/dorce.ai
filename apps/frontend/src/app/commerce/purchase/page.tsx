@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { apiClient } from '@/lib/api'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/lib/auth-context'
 
-export default function PurchaseAirtimePage() {
+function PurchaseInner() {
   const { isAuthenticated } = useAuth()
   const params = useSearchParams()
-  const productId = params.get('productId') || ''
+  const productId = (params?.get('productId') || '')
   const [phone, setPhone] = useState('')
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
@@ -108,5 +108,13 @@ export default function PurchaseAirtimePage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function PurchaseAirtimePage() {
+  return (
+    <Suspense fallback={<div className="text-gray-400 px-6 py-12">Loading…</div>}>
+      <PurchaseInner />
+    </Suspense>
   )
 }

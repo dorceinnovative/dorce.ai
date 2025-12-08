@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { apiClient } from '@/lib/api'
 
-export default function ComparePage() {
+function CompareInner() {
   const params = useSearchParams()
-  const idsParam = params.get('ids') || ''
+  const idsParam = (params?.get('ids') || '')
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -85,5 +85,13 @@ export default function ComparePage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={<div className="text-gray-400 px-6 py-12">Loading…</div>}>
+      <CompareInner />
+    </Suspense>
   )
 }
