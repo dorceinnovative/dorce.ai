@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Dancing_Script } from 'next/font/google';
-const dancing = Dancing_Script({ subsets: ['latin'], weight: ['700'] });
+import { Great_Vibes } from 'next/font/google';
+const greatVibes = Great_Vibes({ subsets: ['latin'], weight: '400' });
 import { ChevronDown, Shield, Users, Building, Wallet, ShoppingCart, Brain, Zap, TrendingUp, Phone, CreditCard, Award, CheckCircle, Play, Pause, ArrowRight, Menu, X, Globe, Store, Smartphone, Briefcase, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api';
@@ -252,8 +252,10 @@ export const AppleStyleLanding: React.FC = () => {
               </div>
             </div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="rounded-full w-20 h-20 bg-white/10 border border-white/20 backdrop-blur-xl flex items-center justify-center">
-                <div className="text-xs text-white">Dorce.ai</div>
+              <div className="rounded-full w-20 h-20 bg-gradient-to-br from-white/30 to-white/5 border border-white/30 backdrop-blur-xl ring-2 ring-white/40 animate-pulse flex items-center justify-center">
+                <div className="scale-95">
+                  <DorceAILogo size="small" />
+                </div>
               </div>
             </div>
           </div>
@@ -366,7 +368,7 @@ export const AppleStyleLanding: React.FC = () => {
                 
               <div className={`transition-all duration-700 ${heroContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
                 <div className="text-2xl md:text-3xl font-semibold max-w-4xl mx-auto md:mx-0">
-                  <span className={`${dancing.className} bg-gradient-to-r from-green-300 via-blue-300 to-yellow-300 bg-clip-text text-transparent tracking-wide`}>
+                  <span className={`${greatVibes.className} bg-gradient-to-r from-green-300 via-blue-300 to-yellow-300 bg-clip-text text-transparent tracking-wide`}>
                     {rotatingLines[currentLine]}
                   </span>
                 </div>
