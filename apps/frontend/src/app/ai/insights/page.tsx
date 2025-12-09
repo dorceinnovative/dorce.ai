@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth-context'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { apiClient } from '@/lib/api'
+import { apiClient, api } from '@/lib/api'
 
 export default function AIInsightsPage() {
   const { isAuthenticated } = useAuth()
@@ -21,33 +21,24 @@ export default function AIInsightsPage() {
   const runBusiness = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await apiClient.request('/api/integration/ai/business-insights', {
-        method: 'POST',
-        body: JSON.stringify({ industry, location })
-      })
-      setBusinessInsights(res?.data || res)
+      const { data } = await api.post<string>('/api/integration/ai/business-insights', { industry, location })
+      setBusinessInsights(data)
     } catch (e: any) { setError(e?.message || 'Business insights failed') } finally { setLoading(false) }
   }
 
   const runMarket = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await apiClient.request('/api/integration/ai/market-research', {
-        method: 'POST',
-        body: JSON.stringify({ industry, location })
-      })
-      setMarketResearch(res?.data || res)
+      const { data } = await api.post<string>('/api/integration/ai/market-research', { industry, location })
+      setMarketResearch(data)
     } catch (e: any) { setError(e?.message || 'Market research failed') } finally { setLoading(false) }
   }
 
   const runMarketing = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await apiClient.request('/api/integration/ai/marketing-content', {
-        method: 'POST',
-        body: JSON.stringify({ product })
-      })
-      setMarketingContent(res?.data || res)
+      const { data } = await api.post<string>('/api/integration/ai/marketing-content', { product })
+      setMarketingContent(data)
     } catch (e: any) { setError(e?.message || 'Marketing content failed') } finally { setLoading(false) }
   }
 

@@ -13,10 +13,10 @@ export default function TelecomReceiptsPage() {
   const load = async () => {
     setLoading(true); setError(null)
     try {
-      const a = await apiClient.request('/api/marketplace/transactions/airtime')
-      const e = await apiClient.request('/api/marketplace/transactions/electricity')
-      setAirtime(a?.data || a?.transactions || [])
-      setElectricity(e?.data || e?.transactions || [])
+      const a: any = await apiClient.request<any>('/api/marketplace/transactions/airtime')
+      const e: any = await apiClient.request<any>('/api/marketplace/transactions/electricity')
+      setAirtime(a?.data || a?.transactions || a || [])
+      setElectricity(e?.data || e?.transactions || e || [])
     } catch (err: any) { setError(err?.message || 'Failed to load receipts') }
     finally { setLoading(false) }
   }

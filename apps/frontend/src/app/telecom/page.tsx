@@ -64,7 +64,7 @@ export default function TelecomPage() {
     if (!ref) return
     setLoading(true); setError(null)
     try {
-      const s = await apiClient.request(`/api/marketplace/transactions/status?ref=${encodeURIComponent(ref)}`)
+      const s: any = await apiClient.request<any>(`/api/marketplace/transactions/status?ref=${encodeURIComponent(ref)}`)
       setStatusRes(s?.data || s)
     } catch (e: any) { setError(e?.message || 'Status check failed') }
     finally { setLoading(false) }
@@ -124,22 +124,38 @@ export default function TelecomPage() {
                 <Input type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
               </div>
               <div className="space-y-2">
-              <label className="text-sm text-blue-300">Phone/Meter</label>
-              <Input value={phone} onChange={(e) => { const v = e.target.value; setPhone(v); setNetwork(detectNetwork(v)) }} />
-              <div className="text-xs text-gray-400">Detected: {network.toUpperCase()}</div>
-              <div className="flex items-center gap-2">
-                <select value={''} onChange={(e)=>{ const v = e.target.value; if (v) { setPhone(v); setNetwork(detectNetwork(v)) } }} className="px-3 py-2 rounded-lg bg-black/40 border border-blue-500/30">
-                  <option value="">Saved numbers</option>
-                  {saved.map((n)=> (
-                    <option key={n} value={n}>{n}</option>
-                  ))}
-                </select>
-                <button className="px-3 py-2 rounded-lg bg-white/10 border border-blue-500/30 hover:bg-white/20" onClick={()=>{
-                  try { setSaved(JSON.parse(localStorage.getItem('telecom_saved_numbers')||'[]')) } catch {}
-                }}>Load</button>
-                <button className="px-3 py-2 rounded-lg bg-white/10 border border-blue-500/30 hover:bg-white/20" onClick={()=>{
-                  setSaved([]); localStorage.removeItem('telecom_saved_numbers')
-                }}>Clear</button>
+                <label className="text-sm text-blue-300">Phone/Meter</label>
+                <Input value={phone} onChange={(e) => { const v = e.target.value; setPhone(v); setNetwork(detectNetwork(v)) }} />
+                <div className="text-xs text-gray-400">Detected: {network.toUpperCase()}</div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={''}
+                    onChange={(e) => { const v = e.target.value; if (v) { setPhone(v); setNetwork(detectNetwork(v)); } }}
+                    className="px-3 py-2 rounded-lg bg-black/40 border border-blue-500/30"
+                  >
+                    <option value="">Saved numbers</option>
+                    {saved.map((n) => (
+                      <option key={n} value={n}>{n}</option>
+                    ))}
+                  </select>
+                  <button
+                    className="px-3 py-2 rounded-lg bg-white/10 border border-blue-500/30 hover:bg-white/20"
+                    onClick={() => {
+                      try { setSaved(JSON.parse(localStorage.getItem('telecom_saved_numbers') || '[]')); } catch {}
+                    }}
+                  >
+                    Load
+                  </button>
+                  <button
+                    className="px-3 py-2 rounded-lg bg-white/10 border border-blue-500/30 hover:bg-white/20"
+                    onClick={() => {
+                      setSaved([]);
+                      localStorage.removeItem('telecom_saved_numbers');
+                    }}
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
             </div>
           </CardContent>

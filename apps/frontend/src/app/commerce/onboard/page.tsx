@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
-import { apiClient } from '@/lib/api'
+import { apiClient, api } from '@/lib/api'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -24,14 +24,11 @@ export default function VendorOnboardPage() {
     if (!name || !slug) return
     setLoading(true); setError(null); setResult(null)
     try {
-      const res = await apiClient.request('/vendor/store', {
-        method: 'POST',
-        body: JSON.stringify({
-          name, slug, description, logo, banner,
-          primaryColor, secondaryColor,
-        }),
+      const { data } = await api.post<any>('/vendor/store', {
+        name, slug, description, logo, banner,
+        primaryColor, secondaryColor,
       })
-      setResult(res?.data || res)
+      setResult(data)
     } catch (e: any) {
       setError(e?.message || 'Onboarding failed')
     } finally { setLoading(false) }

@@ -6,7 +6,7 @@ import { apiClient } from '@/lib/api'
 
 export default function ComparePage() {
   const params = useSearchParams()
-  const idsParam = params.get('ids') || ''
+  const idsParam = (params?.get('ids')) || ''
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

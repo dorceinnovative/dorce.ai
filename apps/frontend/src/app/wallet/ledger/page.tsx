@@ -13,8 +13,8 @@ export default function WalletLedgerPage() {
   const load = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await apiClient.request('/api/wallet/ledger')
-      setEntries(res?.data || res?.entries || [])
+      const res: any = await apiClient.request<any>('/api/wallet/ledger')
+      setEntries(res?.data || res?.entries || res || [])
     } catch (e: any) { setError(e?.message || 'Failed to load ledger') }
     finally { setLoading(false) }
   }

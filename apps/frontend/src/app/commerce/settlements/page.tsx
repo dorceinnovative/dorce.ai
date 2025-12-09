@@ -13,8 +13,8 @@ export default function SettlementsPage() {
   const load = async () => {
     setLoading(true); setError(null)
     try {
-      const res = await apiClient.request('/api/marketplace/settlements')
-      setItems(res?.data || res?.settlements || [])
+      const res: any = await apiClient.request<any>('/api/marketplace/settlements')
+      setItems(res?.data || res?.settlements || res || [])
     } catch (e: any) { setError(e?.message || 'Failed to load settlements') }
     finally { setLoading(false) }
   }

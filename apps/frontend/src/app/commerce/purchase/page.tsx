@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth-context'
 export default function PurchaseAirtimePage() {
   const { isAuthenticated } = useAuth()
   const params = useSearchParams()
-  const productId = params.get('productId') || ''
+  const productId = (params?.get('productId')) || ''
   const [phone, setPhone] = useState('')
   const [amount, setAmount] = useState('')
   const [loading, setLoading] = useState(false)
