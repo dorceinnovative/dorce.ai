@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, UseGuards, Req, HttpCode, HttpStatus } fro
 import type { Request as ExpressRequest } from 'express'
 import { AuthGuard } from '@nestjs/passport'
 import { WalletService } from '../wallets/wallet.service'
+import { KycGuard } from '../auth/kyc.guard'
 
 @Controller('api')
 export class CompatController {
@@ -28,7 +29,7 @@ export class CompatController {
   }
 
   @Post('wallet/fund')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), KycGuard)
   @HttpCode(HttpStatus.OK)
   async fundWalletCompat(@Req() req: ExpressRequest, @Body() body: any) {
     const userId = (req as any).user?.id
@@ -37,7 +38,7 @@ export class CompatController {
   }
 
   @Post('wallet/withdraw')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), KycGuard)
   @HttpCode(HttpStatus.OK)
   async withdrawWalletCompat(@Req() req: ExpressRequest, @Body() body: any) {
     const userId = (req as any).user?.id
@@ -46,11 +47,10 @@ export class CompatController {
   }
 
   @Post('wallet/transfer')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), KycGuard)
   @HttpCode(HttpStatus.OK)
   async transferCompat(@Req() req: ExpressRequest, @Body() body: any) {
     const userId = (req as any).user?.id
     return this.walletService.transferMoney(userId, { recipientId: body?.to, amount: Number(body?.amount || 0), description: body?.note } as any)
   }
 }
-

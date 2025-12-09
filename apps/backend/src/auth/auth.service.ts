@@ -7,6 +7,7 @@ import { LoginDto } from "./dto/login.dto"
 import { OtpVerifyDto } from "./dto/otp-verify.dto"
 import { UsersService } from "../users/users.service"
 import { JwtSecretService } from "./jwt-secret.service"
+import { NotificationService } from "../notification/notification.service"
 
 export interface AuthResponse {
   accessToken: string
@@ -28,6 +29,7 @@ export class AuthService {
     private jwtService: JwtService,
     private usersService: UsersService,
     private jwtSecretService: JwtSecretService,
+    private notificationService: NotificationService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponse> {
@@ -117,11 +119,29 @@ export class AuthService {
       }
     })
 
-    // In production, send via SMS/Email service
-    // For now, return success message (don't expose OTP in production)
-    return { 
-      message: `OTP sent to ${contact}. Please check your ${type}.` 
-    }
+    try {
+      if (type === "email") {
+        await this.notificationService.sendEmail({
+          to: contact,
+          subject: "Your Dorce.ai verification code",
+          html: `<div style="font-family:system-ui,sans-serif;padding:16px">
+                  <h2>Verify your email</h2>
+                  <p>Your one-time code is <strong>${otp}</strong>. It expires in 15 minutes.</p>
+                  <p>If you didn't request this, you can ignore this email.</p>
+                 </div>`
+        })
+      } else {
+        await this.notificationService.sendSms({ to: contact, message: `Your Dorce.ai code is ${otp}. Expires in 15 minutes.` })
+      }
+    } catch {}
+
+    return { message: `OTP sent to ${contact}. Please check your ${type}.` }
+  }
+
+  async issueTokensForUserId(userId: string): Promise<AuthResponse> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { wallet: true } })
+    if (!user) throw new UnauthorizedException('User not found')
+    return this.generateAuthResponse(user)
   }
 
   async verifyOtp(otpVerifyDto: OtpVerifyDto): Promise<AuthResponse | null> {
@@ -163,32 +183,50 @@ export class AuthService {
       return null
     }
 
-    // OTP is valid - find or create user
-    let user = await this.prisma.user.findFirst({ 
-      where: { phone: contact },
-      include: { wallet: true }
-    })
-
-    if (!user) {
-      // Create new user for phone authentication
-      const tempPassword = this.generateSecureTempPassword()
-      const passwordHash = await bcrypt.hash(tempPassword, 12)
-
-      user = await this.prisma.user.create({
-        data: {
-          email: `${contact}@user.dorce.ai`, // Generate secure email
-          phone: contact,
-          passwordHash,
-          role: "USER",
-          phoneVerified: true,
-          wallet: { 
-            create: { 
-              balance: 0
-            } 
+    // OTP is valid - find or update user depending on contact type
+    let user: any
+    const isEmail = contact.includes('@')
+    if (isEmail) {
+      user = await this.prisma.user.findUnique({ where: { email: contact }, include: { wallet: true } })
+      if (!user) {
+        // Create minimal user record for email OTP sign-up
+        const tempPassword = this.generateSecureTempPassword()
+        const passwordHash = await bcrypt.hash(tempPassword, 12)
+        user = await this.prisma.user.create({
+          data: {
+            email: contact,
+            phone: `+000${Math.floor(Math.random()*1e9)}`,
+            passwordHash,
+            role: "USER",
+            emailVerified: true,
+            wallet: { create: { balance: 0 } },
           },
-        },
-        include: { wallet: true }
-      })
+          include: { wallet: true }
+        })
+      } else {
+        await this.prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } })
+        user.emailVerified = true
+      }
+    } else {
+      user = await this.prisma.user.findFirst({ where: { phone: contact }, include: { wallet: true } })
+      if (!user) {
+        const tempPassword = this.generateSecureTempPassword()
+        const passwordHash = await bcrypt.hash(tempPassword, 12)
+        user = await this.prisma.user.create({
+          data: {
+            email: `${contact}@user.dorce.ai`,
+            phone: contact,
+            passwordHash,
+            role: "USER",
+            phoneVerified: true,
+            wallet: { create: { balance: 0 } },
+          },
+          include: { wallet: true }
+        })
+      } else {
+        await this.prisma.user.update({ where: { id: user.id }, data: { phoneVerified: true } })
+        user.phoneVerified = true
+      }
     }
 
     // Clean up used OTP

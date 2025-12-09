@@ -92,9 +92,11 @@ export default function RegisterWizardPage() {
   const sendOtp = async () => {
     setLoading(true); setError(null)
     try {
+      const contact = email || phone
+      const type = email ? 'email' : 'phone'
       await apiClient.request('/api/auth/otp/send', {
         method: 'POST',
-        body: JSON.stringify({ email, phone })
+        body: JSON.stringify({ contact, type, email, phone })
       })
       setOtpSent(true)
     } catch (e: any) { setError(e?.message || 'Failed to send OTP') }
@@ -104,9 +106,10 @@ export default function RegisterWizardPage() {
   const verifyOtp = async () => {
     setLoading(true); setError(null)
     try {
+      const contact = email || phone
       await apiClient.request('/api/auth/otp/verify', {
         method: 'POST',
-        body: JSON.stringify({ email, code: otpCode })
+        body: JSON.stringify({ contact, code: otpCode })
       })
       setOtpVerified(true)
     } catch (e: any) {

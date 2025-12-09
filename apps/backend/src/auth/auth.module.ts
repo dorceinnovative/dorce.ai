@@ -12,6 +12,7 @@ import { TwoFactorAuthService } from "./two-factor-auth.service";
 import { SessionService } from "./session.service";
 import { RateLimitService } from "./rate-limit.service";
 import { NotificationModule } from "../notification/notification.module";
+import { GoogleStrategy } from "./strategies/google.strategy";
 
 @Module({
   imports: [
@@ -37,7 +38,8 @@ import { NotificationModule } from "../notification/notification.module";
     BiometricAuthService,
     TwoFactorAuthService,
     SessionService,
-    RateLimitService
+    RateLimitService,
+    GoogleStrategy,
   ],
   exports: [
     AuthService, 

@@ -12,6 +12,7 @@ import {
   Headers
 } from "@nestjs/common"
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger"
+import { AuthGuard } from "@nestjs/passport"
 import { AuthService } from "./auth.service"
 import type { AuthResponse } from "./auth.service"
 import { RegisterDto } from "./dto/register.dto"
@@ -154,6 +155,8 @@ export class AuthController {
   async sendOtp(
     @Body("contact") contact: string,
     @Body("type") type: "email" | "phone",
+    @Body("email") email?: string,
+    @Body("phone") phone?: string,
     @Headers('x-forwarded-for') ipAddress?: string
   ) {
     // Check OTP sending rate limit
@@ -164,7 +167,12 @@ export class AuthController {
     }
 
     try {
-      const result = await this.authService.sendOtp(contact, type)
+      const resolvedContact = contact || (email ? email : phone || '')
+      const resolvedType: "email" | "phone" = type || (email ? 'email' : 'phone')
+      if (!resolvedContact) {
+        throw new BadRequestException('Missing contact (email or phone)')
+      }
+      const result = await this.authService.sendOtp(resolvedContact, resolvedType)
       
       // Record successful OTP send
       await this.rateLimitService.recordAttempt(contact, `otp_send_${type}`, true)
@@ -181,7 +189,9 @@ export class AuthController {
   @HttpCode(200)
   @ApiOperation({ summary: "Verify OTP code" })
   async verifyOtp(@Body() otpVerifyDto: OtpVerifyDto): Promise<AuthResponse> {
-    const result = await this.authService.verifyOtp(otpVerifyDto)
+    const contact = (otpVerifyDto as any).contact || (otpVerifyDto as any).email || (otpVerifyDto as any).phone
+    const code = (otpVerifyDto as any).code
+    const result = await this.authService.verifyOtp({ contact, code })
     if (!result) throw new BadRequestException("Invalid or expired OTP")
     return result
   }
@@ -299,5 +309,24 @@ export class AuthController {
     @Param("sessionId") sessionId: string
   ): Promise<boolean> {
     return this.sessionService.revokeSession(sessionId)
+  }
+
+  // Google OAuth
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Start Google OAuth' })
+  async googleAuth() {
+    return
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Handle Google OAuth callback' })
+  async googleCallback(@CurrentUser() user: any) {
+    // Issue JWTs and redirect to frontend with tokens
+    const result = await this.authService.issueTokensForUserId(user.id)
+    const frontendUrl = process.env.FRONTEND_URL || 'https://dorce.ai'
+    const url = `${frontendUrl}/login?accessToken=${encodeURIComponent(result.accessToken)}&refreshToken=${encodeURIComponent(result.refreshToken)}`
+    return { redirect: url }
   }
 }
