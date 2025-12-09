@@ -233,37 +233,32 @@ export const AppleStyleLanding: React.FC = () => {
             <div className="absolute inset-0 rounded-full border border-white/20" style={{ transform: `rotate(${rotation}deg)` }} />
             {/** Orbiting chips around the center logo */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div
-                className="rounded-2xl px-3 py-2 bg-gradient-to-br from-green-500 to-green-700 text-white shadow-lg"
-                style={{ transform: `rotate(${rotation}deg) translate(96px) rotate(-${rotation}deg)` }}
+              <div className="rounded-2xl px-3 py-2 bg-gradient-to-br from-green-500 to-green-700 text-white shadow-lg"
+                style={{ transform: `rotate(${rotation}deg) translate(116px) rotate(-${rotation}deg)` }}
               >
                 <div className="flex items-center gap-2"><Wallet className="w-6 h-6" /><span className="text-xs">Wallet</span></div>
               </div>
               <div
                 className="rounded-2xl px-3 py-2 bg-gradient-to-br from-orange-500 to-orange-700 text-white shadow-lg"
-                style={{ transform: `rotate(${rotation + 90}deg) translate(96px) rotate(-${rotation + 90}deg)` }}
+                style={{ transform: `rotate(${rotation + 90}deg) translate(116px) rotate(-${rotation + 90}deg)` }}
               >
                 <div className="flex items-center gap-2"><Store className="w-6 h-6" /><span className="text-xs">Marketplace</span></div>
               </div>
               <div
                 className="rounded-2xl px-3 py-2 bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg"
-                style={{ transform: `rotate(${rotation + 180}deg) translate(96px) rotate(-${rotation + 180}deg)` }}
+                style={{ transform: `rotate(${rotation + 180}deg) translate(116px) rotate(-${rotation + 180}deg)` }}
               >
                 <div className="flex items-center gap-2"><FileText className="w-6 h-6" /><span className="text-xs">CAC/NIN</span></div>
               </div>
               <div
                 className="rounded-2xl px-3 py-2 bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-lg"
-                style={{ transform: `rotate(${rotation + 270}deg) translate(96px) rotate(-${rotation + 270}deg)` }}
+                style={{ transform: `rotate(${rotation + 270}deg) translate(116px) rotate(-${rotation + 270}deg)` }}
               >
                 <div className="flex items-center gap-2"><Smartphone className="w-6 h-6" /><span className="text-xs">Telecom</span></div>
               </div>
             </div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="rounded-full w-28 h-28 bg-gradient-to-br from-white/40 to-white/10 border border-white/40 backdrop-blur-xl ring-2 ring-white/50 animate-pulse flex items-center justify-center">
-                <div className="scale-110">
-                  <DorceAILogo size="small" />
-                </div>
-              </div>
+              <DorceAILogo size="large" className="w-32 h-32" />
             </div>
           </div>
         </div>
