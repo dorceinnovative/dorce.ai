@@ -1,0 +1,13 @@
+[Unit]
+Description=Dorce.ai Git deploy
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/dorce.ai
+ExecStart=/bin/bash /srv/dorce.ai/deploy/scripts/deploy.sh
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
