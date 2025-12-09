@@ -319,7 +319,7 @@ export const AppleStyleLanding: React.FC = () => {
         )}
       </nav>
 
-      <section ref={heroRef} className="relative z-30 min-h-screen flex items-center justify-center overflow-hidden pt-36 md:pt-44">
+      <section ref={heroRef} className="relative z-30 min-h-screen flex items-center justify-center overflow-hidden pt-28 sm:pt-32 md:pt-44">
         <div className="absolute inset-0 bg-gradient-to-br from-green-900 via-blue-900 to-purple-900">
           <div className="absolute inset-0 bg-black bg-opacity-30" />
           
@@ -350,7 +350,7 @@ export const AppleStyleLanding: React.FC = () => {
         </div>
 
         <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">
             <div className="text-center md:text-left">
               <div className={`mb-8 transition-all duration-1000 ${heroContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                 <div className="inline-flex items-center bg-green-600 bg-opacity-20 rounded-full px-4 py-2 mb-6 backdrop-blur-sm">
@@ -377,7 +377,7 @@ export const AppleStyleLanding: React.FC = () => {
               </div>
               </div>
 
-              <div className={`grid grid-cols-2 sm:grid-cols-2 md:flex md:flex-wrap gap-3 justify-center md:justify-start items-stretch mb-12 transition-all duration-1200 delay-600 ${heroContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap gap-3 justify-center md:justify-start items-stretch mb-10 sm:mb-12 transition-all duration-1200 delay-600 ${heroContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
                 <Link href="/cac-registration" className="bg-green-600 hover:bg-green-700 text-white px-7 py-4 rounded-2xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-green-500/25 ring-1 ring-white/10 hover:ring-white/20 min-w-[240px] justify-center">
                   <Briefcase className="w-5 h-5" />
                   Register Your Business
@@ -395,10 +395,12 @@ export const AppleStyleLanding: React.FC = () => {
                 </a>
               </div>
 
+            {false && (
               <div className="flex flex-col items-center md:items-start animate-bounce">
                 <span className="text-gray-400 text-sm mb-2">Scroll to explore</span>
                 <ChevronDown className="w-6 h-6 text-gray-400" />
               </div>
+            )}
             </div>
             <div className="flex justify-center md:justify-end">
               <ConceptShowcase rotation={conceptRotation} />
@@ -503,7 +505,7 @@ export const AppleStyleLanding: React.FC = () => {
         </div>
       </section>
 
-      <section id="featured" className="py-20 bg-black relative overflow-hidden">
+      <section id="featured" className="py-16 sm:py-20 bg-black relative overflow-hidden">
         <div className="absolute inset-0">
           {[...Array(30)].map((_, i) => (
             <div
@@ -529,7 +531,7 @@ export const AppleStyleLanding: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {featuredServices.map((service, index) => (
               <Link key={service.id} href={service.route}>
                 <div 
@@ -585,7 +587,7 @@ export const AppleStyleLanding: React.FC = () => {
         </div>
       </section>
 
-      <section id="metrics" className="py-20 bg-gradient-to-r from-green-900 via-blue-900 to-purple-900 relative overflow-hidden">
+      <section id="metrics" className="py-16 sm:py-20 bg-gradient-to-r from-green-900 via-blue-900 to-purple-900 relative overflow-hidden">
         <div className="absolute inset-0">
           {[...Array(40)].map((_, i) => (
             <div
@@ -643,7 +645,7 @@ export const AppleStyleLanding: React.FC = () => {
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-br from-gray-900 via-black to-gray-900 border-t border-gray-800 relative overflow-hidden">
+      <section className="py-16 sm:py-20 bg-gradient-to-br from-gray-900 via-black to-gray-900 border-t border-gray-800 relative overflow-hidden">
         <div className="absolute inset-0">
           {[...Array(25)].map((_, i) => (
             <div
@@ -722,7 +724,7 @@ export const AppleStyleLanding: React.FC = () => {
         </div>
       </section>
 
-      <footer className="bg-gray-900 border-t border-gray-800 py-16">
+      <footer className="bg-gray-900 border-t border-gray-800 py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
