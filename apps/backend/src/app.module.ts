@@ -35,6 +35,7 @@ import { AuditModule } from "./audit/audit.module"
 import { SecurityModule } from "./security/security.module"
 import { NeuralCoreModule } from "./neural-core/neural-core.module"
 import { AdsModule } from "./ads/ads.module"
+import { CompatModule } from "./compat/compat.module"
 
 @Module({
   imports: [
@@ -97,6 +98,7 @@ import { AdsModule } from "./ads/ads.module"
     SecurityModule,
     NeuralCoreModule,
     AdsModule,
+    CompatModule,
     forwardRef(() => OSModule),
   ],
   controllers: [HealthController],
