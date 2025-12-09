@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Great_Vibes } from 'next/font/google';
-const greatVibes = Great_Vibes({ subsets: ['latin'], weight: '400' });
+import { Grand_Hotel } from 'next/font/google';
+const grandHotel = Grand_Hotel({ subsets: ['latin'], weight: '400' });
 import { ChevronDown, Shield, Users, Building, Wallet, ShoppingCart, Brain, Zap, TrendingUp, Phone, CreditCard, Award, CheckCircle, Play, Pause, ArrowRight, Menu, X, Globe, Store, Smartphone, Briefcase, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/api';
@@ -231,29 +231,36 @@ export const AppleStyleLanding: React.FC = () => {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72">
             <div className="absolute inset-0 rounded-full border border-white/20" style={{ transform: `rotate(${rotation}deg)` }} />
-            <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2">
-              <div className="rounded-2xl px-3 py-2 bg-gradient-to-br from-green-500 to-green-700 text-white shadow-lg">
+            {/** Orbiting chips around the center logo */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                className="rounded-2xl px-3 py-2 bg-gradient-to-br from-green-500 to-green-700 text-white shadow-lg"
+                style={{ transform: `rotate(${rotation}deg) translate(96px) rotate(-${rotation}deg)` }}
+              >
                 <div className="flex items-center gap-2"><Wallet className="w-6 h-6" /><span className="text-xs">Wallet</span></div>
               </div>
-            </div>
-            <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="rounded-2xl px-3 py-2 bg-gradient-to-br from-orange-500 to-orange-700 text-white shadow-lg">
+              <div
+                className="rounded-2xl px-3 py-2 bg-gradient-to-br from-orange-500 to-orange-700 text-white shadow-lg"
+                style={{ transform: `rotate(${rotation + 90}deg) translate(96px) rotate(-${rotation + 90}deg)` }}
+              >
                 <div className="flex items-center gap-2"><Store className="w-6 h-6" /><span className="text-xs">Marketplace</span></div>
               </div>
-            </div>
-            <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2">
-              <div className="rounded-2xl px-3 py-2 bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg">
+              <div
+                className="rounded-2xl px-3 py-2 bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg"
+                style={{ transform: `rotate(${rotation + 180}deg) translate(96px) rotate(-${rotation + 180}deg)` }}
+              >
                 <div className="flex items-center gap-2"><FileText className="w-6 h-6" /><span className="text-xs">CAC/NIN</span></div>
               </div>
-            </div>
-            <div className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2">
-              <div className="rounded-2xl px-3 py-2 bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-lg">
+              <div
+                className="rounded-2xl px-3 py-2 bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-lg"
+                style={{ transform: `rotate(${rotation + 270}deg) translate(96px) rotate(-${rotation + 270}deg)` }}
+              >
                 <div className="flex items-center gap-2"><Smartphone className="w-6 h-6" /><span className="text-xs">Telecom</span></div>
               </div>
             </div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="rounded-full w-20 h-20 bg-gradient-to-br from-white/30 to-white/5 border border-white/30 backdrop-blur-xl ring-2 ring-white/40 animate-pulse flex items-center justify-center">
-                <div className="scale-95">
+              <div className="rounded-full w-28 h-28 bg-gradient-to-br from-white/40 to-white/10 border border-white/40 backdrop-blur-xl ring-2 ring-white/50 animate-pulse flex items-center justify-center">
+                <div className="scale-110">
                   <DorceAILogo size="small" />
                 </div>
               </div>
@@ -367,27 +374,27 @@ export const AppleStyleLanding: React.FC = () => {
                 </h1>
                 
               <div className={`transition-all duration-700 ${heroContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-                <div className="text-2xl md:text-3xl font-semibold max-w-4xl mx-auto md:mx-0">
-                  <span className={`${greatVibes.className} bg-gradient-to-r from-green-300 via-blue-300 to-yellow-300 bg-clip-text text-transparent tracking-wide`}>
+                <div className="text-3xl md:text-4xl font-semibold max-w-4xl mx-auto md:mx-0">
+                  <span className={`${grandHotel.className} bg-gradient-to-r from-green-300 via-blue-300 to-yellow-300 bg-clip-text text-transparent tracking-wide`}>
                     {rotatingLines[currentLine]}
                   </span>
                 </div>
               </div>
               </div>
 
-              <div className={`flex flex-col sm:flex-row gap-4 justify-center md:justify-start items-center mb-12 transition-all duration-1200 delay-600 ${heroContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                <Link href="/cac-registration" className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-green-500/25 ring-1 ring-white/10 hover:ring-white/20">
+              <div className={`grid grid-cols-2 sm:grid-cols-2 md:flex md:flex-wrap gap-3 justify-center md:justify-start items-stretch mb-12 transition-all duration-1200 delay-600 ${heroContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                <Link href="/cac-registration" className="bg-green-600 hover:bg-green-700 text-white px-7 py-4 rounded-2xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-green-500/25 ring-1 ring-white/10 hover:ring-white/20 min-w-[240px] justify-center">
                   <Briefcase className="w-5 h-5" />
                   Register Your Business
                 </Link>
-                <Link href="/plan-collaborate" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-blue-500/25 ring-1 ring-white/10 hover:ring-white/20">
+                <Link href="/plan-collaborate" className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-4 rounded-2xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-blue-500/25 ring-1 ring-white/10 hover:ring-white/20 min-w-[240px] justify-center">
                   Plan & Collaborate
                 </Link>
-                <Link href="/nin/enroll" className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-green-500/25 ring-1 ring-white/10 hover:ring-white/20">
+                <Link href="/nin/enroll" className="bg-green-600 hover:bg-green-700 text-white px-7 py-4 rounded-2xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-green-500/25 ring-1 ring-white/10 hover:ring-white/20 min-w-[240px] justify-center">
                   <Shield className="w-5 h-5" />
                   Get Your National ID
                 </Link>
-                <a href="#featured" className="border border-gray-600 hover:border-gray-500 text-white px-6 py-3 rounded-xl text-base font-semibold transition-all flex items-center gap-2 backdrop-blur-sm hover:bg-white hover:bg-opacity-10 ring-1 ring-white/10 hover:ring-white/20">
+                <a href="#featured" className="border border-gray-600 hover:border-gray-500 text-white px-7 py-4 rounded-2xl text-base font-semibold transition-all flex items-center gap-2 backdrop-blur-sm hover:bg-white hover:bg-opacity-10 ring-1 ring-white/10 hover:ring-white/20 min-w-[240px] justify-center">
                   Explore Services
                   <ArrowRight className="w-5 h-5" />
                 </a>
