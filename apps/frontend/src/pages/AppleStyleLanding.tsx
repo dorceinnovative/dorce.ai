@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { apiClient } from '@/lib/api';
 import DorceAILogo from '@/components/DorceAILogo';
 import dynamic from 'next/dynamic';
+import EnvatoBlend from '@/components/EnvatoBlend';
 
 const CinematicBackground = dynamic(
   () => import('@/components/CinematicBackground'),
@@ -227,13 +228,13 @@ export const AppleStyleLanding: React.FC = () => {
   const ConceptShowcase: React.FC<{ rotation: number }> = ({ rotation }) => {
     return (
       <div className="relative w-full h-60 sm:h-72 md:h-80 lg:h-[420px] max-w-xl rounded-3xl overflow-hidden border border-white/10 bg-black/30 backdrop-blur-xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-900 via-blue-900 to-purple-900 opacity-60" />
+        <EnvatoBlend imageUrl={process.env.NEXT_PUBLIC_ENVATO_IMAGE_URL} rotation={rotation} />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72">
-            <div className="absolute inset-0 rounded-full border border-white/20" style={{ transform: `rotate(${rotation}deg)` }} />
             {/** Orbiting chips around the center logo */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="rounded-2xl px-3 py-2 bg-gradient-to-br from-green-500 to-green-700 text-white shadow-lg"
+              <div
+                className="rounded-2xl px-3 py-2 bg-gradient-to-br from-green-500 to-green-700 text-white shadow-lg"
                 style={{ transform: `rotate(${rotation}deg) translate(116px) rotate(-${rotation}deg)` }}
               >
                 <div className="flex items-center gap-2"><Wallet className="w-6 h-6" /><span className="text-xs">Wallet</span></div>
@@ -257,12 +258,8 @@ export const AppleStyleLanding: React.FC = () => {
                 <div className="flex items-center gap-2"><Smartphone className="w-6 h-6" /><span className="text-xs">Telecom</span></div>
               </div>
             </div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <DorceAILogo size="large" className="w-32 h-32" />
-            </div>
           </div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
       </div>
     );
   };
