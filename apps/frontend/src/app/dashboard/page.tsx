@@ -4,12 +4,80 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { OSInterface } from '@/components/os-interface'
+import ServiceMap from '@/components/ServiceMap'
 import { useOSKernel } from '@/lib/os-kernel-context'
 
 export default function DashboardPage() {
   const router = useRouter()
   const { user, isLoading, isAuthenticated, logout } = useAuth()
   const { launchApp, availableApps } = useOSKernel()
+
+  const services = [
+    {
+      id: 'transfer',
+      name: 'Transfer',
+      description: 'Send money instantly',
+      status: 'active' as const,
+      metadata: { icon: '🚀', category: 'payments', color: '#34C759' },
+      position_x: 260, position_y: 220,
+    },
+    {
+      id: 'register-business',
+      name: 'Register Business (CAC)',
+      description: 'Incorporate your company',
+      status: 'active' as const,
+      metadata: { icon: '🏢', category: 'business', color: '#0A84FF' },
+      position_x: 320, position_y: 200,
+    },
+    {
+      id: 'vendor-onboarding',
+      name: 'Vendor Onboarding',
+      description: 'Become a marketplace vendor',
+      status: 'active' as const,
+      metadata: { icon: '🛍️', category: 'commerce', color: '#FF9F0A' },
+      position_x: 360, position_y: 240,
+    },
+    {
+      id: 'storelink',
+      name: 'Storelink Creation',
+      description: 'Create a shareable store link',
+      status: 'active' as const,
+      metadata: { icon: '🔗', category: 'commerce', color: '#BF5AF2' },
+      position_x: 400, position_y: 220,
+    },
+    {
+      id: 'subscriptions',
+      name: 'Digital Subscriptions',
+      description: 'Manage recurring billing',
+      status: 'active' as const,
+      metadata: { icon: '🔄', category: 'payments', color: '#64D2FF' },
+      position_x: 240, position_y: 260,
+    },
+    {
+      id: 'nin-registration',
+      name: 'NIN Registration',
+      description: 'Enroll for NIN nationwide',
+      status: 'active' as const,
+      metadata: { icon: '🛡️', category: 'identity', color: '#30D158' },
+      position_x: 300, position_y: 280,
+    },
+    {
+      id: 'premium-card',
+      name: 'Premium Card Printing',
+      description: 'Order high-quality ID cards',
+      status: 'active' as const,
+      metadata: { icon: '💳', category: 'identity', color: '#FFD60A' },
+      position_x: 360, position_y: 300,
+    },
+    {
+      id: 'tin-registration',
+      name: 'TIN Registration',
+      description: 'Individual and Corporate TIN',
+      status: 'active' as const,
+      metadata: { icon: '📄', category: 'compliance', color: '#FF375F' },
+      position_x: 420, position_y: 260,
+    },
+  ]
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -47,6 +115,29 @@ export default function DashboardPage() {
     } catch (error) {
       console.error(`Failed to launch app ${appId}:`, error)
       alert(`Failed to launch app: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  const handleServiceClick = (service: any) => {
+    switch (service.id) {
+      case 'transfer':
+        router.push('/wallet/transfer'); break
+      case 'register-business':
+        router.push('/cac-registration'); break
+      case 'vendor-onboarding':
+        router.push('/commerce/onboard'); break
+      case 'storelink':
+        router.push('/commerce'); break
+      case 'subscriptions':
+        router.push('/subscriptions'); break
+      case 'nin-registration':
+        router.push('/nin/enroll'); break
+      case 'premium-card':
+        router.push('/nin/card'); break
+      case 'tin-registration':
+        router.push('/telecom'); break
+      default:
+        router.push('/dashboard')
     }
   }
 
@@ -153,6 +244,12 @@ export default function DashboardPage() {
               </button>
             </div>
           )}
+        </div>
+
+        {/* Service Discovery Map */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4">Service Discovery</h2>
+          <ServiceMap services={services as any} onServiceClick={handleServiceClick} />
         </div>
 
         {/* Available Apps */}
