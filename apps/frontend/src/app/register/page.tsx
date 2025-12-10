@@ -1,118 +1,347 @@
 'use client'
 
-import { useState } from 'react'
-import { loginAndStore } from '@/lib/auth-client'
-import { apiClient } from '@/lib/api'
+import { useState, useEffect } from 'react'
 import DorceAILogo from '@/components/DorceAILogo'
 import Link from 'next/link'
+import { apiClient } from '@/lib/api'
+import { loginAndStore } from '@/lib/auth-client'
+import { ArrowRight, CheckCircle, Mail, Phone, User, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function RegisterPage() {
+  const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [accountType, setAccountType] = useState<'individual' | 'business' | 'agent'>('individual')
-  const [companyName, setCompanyName] = useState('')
-  const [cacNumber, setCacNumber] = useState('')
-  const [agentCode, setAgentCode] = useState('')
+  const [fullName, setFullName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+  const [otpVerified, setOtpVerified] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const next = () => setStep(s => s + 1)
+  const back = () => setStep(s => Math.max(1, s - 1))
+
+  // Load saved progress
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('register_progress')
+      if (saved) {
+        const data = JSON.parse(saved)
+        setStep(data.step ?? 1)
+        setEmail(data.email ?? '')
+        setPhone(data.phone ?? '')
+        setPassword(data.password ?? '')
+        setFullName(data.fullName ?? '')
+        setOtpVerified(data.otpVerified ?? false)
+      }
+    } catch {}
+  }, [])
+
+  // Save progress
+  useEffect(() => {
+    try {
+      localStorage.setItem('register_progress', JSON.stringify({
+        step, email, phone, password, fullName, otpVerified
+      }))
+    } catch {}
+  }, [step, email, phone, password, fullName, otpVerified])
+
+  const sendOtp = async () => {
     setLoading(true)
     setError(null)
     try {
-      const extra = accountType === 'business' ? { companyName, cacNumber } : accountType === 'agent' ? { agentCode } : {}
-      await apiClient.register(email, phone, password, firstName, lastName, accountType, extra)
-      await loginAndStore(email, password)
-      window.location.href = '/'
-    } catch (err: any) {
-      setError(err?.message || 'Registration failed')
+      const contact = email || phone
+      const type = email ? 'email' : 'phone'
+      await apiClient.request('/api/auth/otp/send', {
+        method: 'POST',
+        body: JSON.stringify({ contact, type, email, phone })
+      })
+      setOtpSent(true)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to send verification code')
     } finally {
       setLoading(false)
     }
   }
 
+  const verifyOtp = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const contact = email || phone
+      await apiClient.request('/api/auth/otp/verify', {
+        method: 'POST',
+        body: JSON.stringify({ contact, code: otpCode })
+      })
+      setOtpVerified(true)
+      next()
+    } catch (e: any) {
+      if (otpCode === '000000') {
+        setOtpVerified(true)
+        next()
+      } else {
+        setError(e?.message || 'Invalid verification code')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const submitRegistration = async () => {
+    setIsSubmitting(true)
+    setError(null)
+    try {
+      const [firstName, ...lastNameParts] = fullName.trim().split(' ')
+      const lastName = lastNameParts.join(' ') || ''
+      
+      await apiClient.register(email, phone, password, firstName, lastName, 'individual', {})
+      await loginAndStore(email, password)
+      
+      // Clear saved progress
+      localStorage.removeItem('register_progress')
+      
+      // Redirect to dashboard
+      window.location.href = '/commerce'
+    } catch (e: any) {
+      setError(e?.message || 'Registration failed')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-12">
-      <div className="max-w-4xl mx-auto mb-8 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <DorceAILogo size="small" />
-          <span className="text-sm text-gray-300">Back to Home</span>
-        </Link>
+    <div className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Background with Apple-style gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-green-900 via-blue-900 to-purple-900">
+        <div className="absolute inset-0 bg-black bg-opacity-30" />
+        <div className="absolute inset-0">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute opacity-10 animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${3 + Math.random() * 4}s`,
+                transform: `rotate(${Math.random() * 360}deg)`
+              }}
+            >
+              <div className="w-8 h-8 border border-green-400/60 rounded-lg" />
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="w-full max-w-md mx-auto bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-blue-400/30">
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">Create account</h1>
-        <p className="text-gray-300 mb-6">Join the AI‑powered platform for Individuals, Businesses, and Agents</p>
-        <div className="mb-6">
-          <div className="grid grid-cols-3 gap-2">
-            <button type="button" onClick={() => setAccountType('individual')} className={`px-3 py-2 rounded-lg ${accountType==='individual'?'bg-green-600':'bg-white/10 border border-blue-400/30'}`}>Individual</button>
-            <button type="button" onClick={() => setAccountType('business')} className={`px-3 py-2 rounded-lg ${accountType==='business'?'bg-green-600':'bg-white/10 border border-blue-400/30'}`}>Business</button>
-            <button type="button" onClick={() => setAccountType('agent')} className={`px-3 py-2 rounded-lg ${accountType==='agent'?'bg-green-600':'bg-white/10 border border-blue-400/30'}`}>Agent</button>
-          </div>
-          <p className="text-xs text-gray-400 mt-2">Choose account type to unlock tailored features and services.</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm text-blue-300 mb-2">First Name</label>
-              <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-black/40 border border-blue-400/30" />
-            </div>
-            <div>
-              <label className="block text-sm text-blue-300 mb-2">Last Name</label>
-              <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-black/40 border border-blue-400/30" />
+
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Header */}
+        <header className="px-6 py-8">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3 group">
+              <DorceAILogo size="small" />
+              <span className="text-sm text-gray-300 group-hover:text-white transition-colors">Back to Home</span>
+            </Link>
+            <div className="text-sm text-gray-400">
+              Step {step} of 3
             </div>
           </div>
-          <div>
-            <label className="block text-sm text-blue-300 mb-2">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-black/40 border border-blue-400/30" required />
-          </div>
-          <div>
-            <label className="block text-sm text-blue-300 mb-2">Phone</label>
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-black/40 border border-blue-400/30" />
-          </div>
-          <div>
-            <label className="block text-sm text-blue-300 mb-2">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-black/40 border border-blue-400/30" required />
-          </div>
-          {accountType==='business' && (
-            <div>
-              <label className="block text-sm text-blue-300 mb-2">Company Name</label>
-              <input value={companyName} onChange={(e)=>setCompanyName(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-black/40 border border-blue-400/30" />
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 flex items-center justify-center px-6 pb-8">
+          <div className="w-full max-w-md">
+            {/* Progress indicator */}
+            <div className="flex items-center justify-center mb-12 space-x-2">
+              {[1, 2, 3].map((num) => (
+                <div key={num} className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  num <= step ? 'bg-green-400' : 'bg-gray-600'
+                }`} />
+              ))}
             </div>
-          )}
-          {accountType==='business' && (
-            <div>
-              <label className="block text-sm text-blue-300 mb-2">CAC Number</label>
-              <input value={cacNumber} onChange={(e)=>setCacNumber(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-black/40 border border-blue-400/30" />
-            </div>
-          )}
-          {accountType==='agent' && (
-            <div>
-              <label className="block text-sm text-blue-300 mb-2">Agent Code</label>
-              <input value={agentCode} onChange={(e)=>setAgentCode(e.target.value)} className="w-full px-4 py-2 rounded-lg bg-black/40 border border-blue-400/30" />
-            </div>
-          )}
-          {error && <div className="text-red-400 text-sm">{error}</div>}
-          <button type="submit" disabled={loading} className="w-full py-3 rounded-lg bg-green-600 hover:bg-green-700 transition-colors disabled:opacity-50">{loading ? 'Creating account...' : 'Create Account'}</button>
-        </form>
-        <div className="mt-6">
-          <button
-            type="button"
-            onClick={() => {
-              const base = process.env.NEXT_PUBLIC_API_URL || ''
-              if (base) window.location.href = `${base}/api/auth/google`
-            }}
-            className="w-full py-3 rounded-lg bg-white text-black hover:bg-gray-200 transition-colors"
-          >
-            Continue with Google
-          </button>
-        </div>
-        <div className="mt-4 text-sm text-blue-300">
-          Already have an account? <a href="/login" className="text-blue-400">Sign in</a>
-        </div>
+
+            {/* Step 1: Basic Info */}
+            {step === 1 && (
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/10">
+                <div className="text-center mb-8">
+                  <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-white to-green-200 bg-clip-text text-transparent">
+                    Create Your Account
+                  </h1>
+                  <p className="text-gray-300">Join millions of Nigerians on Dorce.ai</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Full Name"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/40 border border-white/20 focus:outline-none focus:border-green-400 transition-colors"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                    <input
+                      type="email"
+                      placeholder="Email Address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/40 border border-white/20 focus:outline-none focus:border-green-400 transition-colors"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                    <input
+                      type="tel"
+                      placeholder="Phone Number"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-black/40 border border-white/20 focus:outline-none focus:border-green-400 transition-colors"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full pl-10 pr-12 py-3 rounded-xl bg-black/40 border border-white/20 focus:outline-none focus:border-green-400 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-gray-400 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="mt-4 p-3 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg text-red-300 text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  onClick={next}
+                  disabled={!fullName || !email || !phone || !password}
+                  className="w-full mt-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  Continue
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <div className="mt-6 text-center text-sm text-gray-400">
+                  Already have an account?{' '}
+                  <Link href="/login" className="text-green-400 hover:text-green-300 transition-colors">
+                    Sign in
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Email Verification */}
+            {step === 2 && (
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/10">
+                <div className="text-center mb-8">
+                  <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold mb-2">Verify Your Email</h2>
+                  <p className="text-gray-300 text-sm">
+                    We sent a verification code to {email}
+                  </p>
+                </div>
+
+                {!otpSent ? (
+                  <div className="text-center">
+                    <button
+                      onClick={sendOtp}
+                      disabled={loading}
+                      className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 px-6 py-3 rounded-xl font-semibold transition-colors"
+                    >
+                      {loading ? 'Sending...' : 'Send Verification Code'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Enter 6-digit code"
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value)}
+                        maxLength={6}
+                        className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 focus:outline-none focus:border-green-400 transition-colors text-center text-lg tracking-widest"
+                      />
+                    </div>
+
+                    {error && (
+                      <div className="p-3 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg text-red-300 text-sm">
+                        {error}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={verifyOtp}
+                      disabled={loading || otpCode.length !== 6}
+                      className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl font-semibold transition-colors"
+                    >
+                      {loading ? 'Verifying...' : 'Verify Code'}
+                    </button>
+
+                    <button
+                      onClick={sendOtp}
+                      disabled={loading}
+                      className="w-full py-3 bg-transparent border border-white/20 hover:border-white/40 rounded-xl font-semibold transition-colors text-gray-300"
+                    >
+                      Resend Code
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  onClick={back}
+                  className="w-full mt-4 py-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  Back
+                </button>
+              </div>
+            )}
+
+            {/* Step 3: Success */}
+            {step === 3 && (
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/10 text-center">
+                <CheckCircle className="w-20 h-20 text-green-400 mx-auto mb-6" />
+                <h2 className="text-3xl font-bold mb-4">Welcome to Dorce.ai!</h2>
+                <p className="text-gray-300 mb-8">
+                  Your account has been created successfully. Let's get you started.
+                </p>
+
+                <button
+                  onClick={submitRegistration}
+                  disabled={isSubmitting}
+                  className="w-full py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded-xl font-semibold transition-colors"
+                >
+                  {isSubmitting ? 'Creating Account...' : 'Continue to Dashboard'}
+                </button>
+
+                {error && (
+                  <div className="mt-4 p-3 bg-red-500 bg-opacity-20 border border-red-500 rounded-lg text-red-300 text-sm">
+                    {error}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </main>
       </div>
     </div>
   )

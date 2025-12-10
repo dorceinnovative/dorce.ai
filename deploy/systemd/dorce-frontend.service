@@ -1,0 +1,17 @@
+[Unit]
+Description=Dorce.ai Frontend
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/srv/dorce.ai/apps/frontend
+Environment=PORT=3000
+Environment=NODE_ENV=production
+Environment=NEXT_PUBLIC_API_URL=https://dorce.ai/api
+ExecStart=/usr/bin/npm run start
+Restart=always
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target

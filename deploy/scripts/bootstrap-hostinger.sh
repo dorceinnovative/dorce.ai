@@ -64,11 +64,27 @@ fi
 
 echo "==> Install and build frontend"
 cd /srv/dorce.ai/apps/frontend
+npm run env || true
+if [[ ! -f ".env.production" ]]; then
+  echo "NEXT_PUBLIC_API_URL=https://$DOMAIN/api" > .env.production
+  echo "NEXT_PUBLIC_ENVATO_IMAGE_URL=" >> .env.production
+fi
 npm ci
 npm run build
 
 echo "==> Install and build backend"
 cd /srv/dorce.ai/apps/backend
+npm run env || true
+if [[ ! -f ".env" ]]; then
+  echo "NODE_ENV=production" > .env
+  echo "PORT=4000" >> .env
+  echo "FRONTEND_URL=https://$DOMAIN" >> .env
+  echo "CORS_ORIGINS=https://$DOMAIN,https://www.$DOMAIN" >> .env
+  echo "DATABASE_URL=postgresql://user:password@host:5432/dorceai" >> .env
+  echo "JWT_SECRET=change-me" >> .env
+  echo "JWT_ACCESS_SECRET=change-me-access" >> .env
+  echo "JWT_REFRESH_SECRET=change-me-refresh" >> .env
+fi
 npm ci
 npm run build
 echo "==> Apply Prisma migrations (best-effort)"
@@ -99,4 +115,3 @@ echo "==> Deployment complete"
 echo "Check:"
 echo "  curl -I https://$DOMAIN"
 echo "  curl -s https://$DOMAIN/api/health"
-

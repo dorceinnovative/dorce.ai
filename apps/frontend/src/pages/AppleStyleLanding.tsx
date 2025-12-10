@@ -289,7 +289,7 @@ export const AppleStyleLanding: React.FC = () => {
 
             <div className="hidden md:flex items-center space-x-4">
               <Link href="/login" className="text-gray-300 hover:text-white transition-colors">Sign In</Link>
-              <Link href="/register/wizard" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">Get Started</Link>
+              <Link href="/register" className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">Get Started</Link>
             </div>
 
             <button 
@@ -378,9 +378,6 @@ export const AppleStyleLanding: React.FC = () => {
                 <Link href="/cac-registration" className="bg-green-600 hover:bg-green-700 text-white px-7 py-4 rounded-2xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-green-500/25 ring-1 ring-white/10 hover:ring-white/20 min-w-[240px] justify-center">
                   <Briefcase className="w-5 h-5" />
                   Register Your Business
-                </Link>
-                <Link href="/plan-collaborate" className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-4 rounded-2xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-blue-500/25 ring-1 ring-white/10 hover:ring-white/20 min-w-[240px] justify-center">
-                  Plan & Collaborate
                 </Link>
                 <Link href="/nin/enroll" className="bg-green-600 hover:bg-green-700 text-white px-7 py-4 rounded-2xl text-base font-semibold transition-all transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-green-500/25 ring-1 ring-white/10 hover:ring-white/20 min-w-[240px] justify-center">
                   <Shield className="w-5 h-5" />
@@ -696,7 +693,7 @@ export const AppleStyleLanding: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link href="/register/wizard" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 flex items-center justify-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-green-500/25">
+            <Link href="/register" className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 flex items-center justify-center gap-2 backdrop-blur-sm hover:shadow-lg hover:shadow-green-500/25">
               <Phone className="w-5 h-5" />
               Get Started Now
             </Link>
