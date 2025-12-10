@@ -19,7 +19,7 @@ export default function LoginPage() {
     setError(null)
     try {
       await loginAndStore(email, password)
-      window.location.href = '/'
+      window.location.href = '/dashboard'
     } catch (err: any) {
       setError(err?.message || 'Login failed')
     } finally {

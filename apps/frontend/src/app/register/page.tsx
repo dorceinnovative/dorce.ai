@@ -72,19 +72,15 @@ export default function RegisterPage() {
     setError(null)
     try {
       const contact = email || phone
-      await apiClient.request('/api/auth/otp/verify', {
+      const tokens = await apiClient.request('/api/auth/otp/verify', {
         method: 'POST',
         body: JSON.stringify({ contact, code: otpCode })
       })
+      try { localStorage.setItem('auth_tokens', JSON.stringify(tokens)) } catch {}
       setOtpVerified(true)
       next()
     } catch (e: any) {
-      if (otpCode === '000000') {
-        setOtpVerified(true)
-        next()
-      } else {
-        setError(e?.message || 'Invalid verification code')
-      }
+      setError(e?.message || 'Invalid verification code')
     } finally {
       setLoading(false)
     }
@@ -94,21 +90,39 @@ export default function RegisterPage() {
     setIsSubmitting(true)
     setError(null)
     try {
-      const [firstName, ...lastNameParts] = fullName.trim().split(' ')
-      const lastName = lastNameParts.join(' ') || ''
-      
-      await apiClient.register(email, phone, password, firstName, lastName, 'individual', {})
-      await loginAndStore(email, password)
-      
       // Clear saved progress
       localStorage.removeItem('register_progress')
-      
-      // Redirect to dashboard
-      window.location.href = '/commerce'
+      // Redirect to main dashboard
+      window.location.href = '/dashboard'
     } catch (e: any) {
       setError(e?.message || 'Registration failed')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleContinueFromStep1 = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const [firstName, ...lastNameParts] = fullName.trim().split(' ')
+      const lastName = lastNameParts.join(' ') || ''
+      const tokens = await apiClient.register(email, phone, password, firstName, lastName, 'individual', {})
+      try { localStorage.setItem('auth_tokens', JSON.stringify(tokens)) } catch {}
+      // proactively send OTP to email
+      await sendOtp()
+      next()
+    } catch (e: any) {
+      // If user exists, try login and proceed to OTP
+      try {
+        await loginAndStore(email, password)
+        await sendOtp()
+        next()
+      } catch (err: any) {
+        setError(e?.message || err?.message || 'Unable to start registration')
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -232,11 +246,11 @@ export default function RegisterPage() {
                 )}
 
                 <button
-                  onClick={next}
-                  disabled={!fullName || !email || !phone || !password}
+                  onClick={handleContinueFromStep1}
+                  disabled={!fullName || !email || !phone || !password || loading}
                   className="w-full mt-6 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2"
                 >
-                  Continue
+                  {loading ? 'Please wait...' : 'Continue'}
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
