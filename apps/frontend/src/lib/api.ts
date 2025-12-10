@@ -1,4 +1,4 @@
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "https://dorce-ai-backend-pffv.onrender.com"
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== "undefined" ? "" : "")
 
 export interface ApiResponse<T> {
   data?: T
@@ -179,13 +179,13 @@ class ApiClient {
 
   // Utility method for API health check
   async healthCheck() {
-    return this.request<{ status: string; timestamp: string }>("/health")
+    return this.request<{ status: string; timestamp: string }>("/api/health")
   }
 
   // Telecom APIs
   async telecomAiPurchase(message: string, context?: Record<string, any>) {
     return this.request<{ success: boolean; message: string; provider?: string; transactionId?: string }>(
-      "/telecom/ai-purchase",
+      "/api/telecom/ai-purchase",
       { method: "POST", body: JSON.stringify({ message, context }) }
     )
   }
@@ -198,7 +198,7 @@ class ApiClient {
     variation?: string
   }) {
     return this.request<{ success: boolean; message: string; provider?: string; transactionId?: string }>(
-      "/telecom/purchase",
+      "/api/telecom/purchase",
       { method: "POST", body: JSON.stringify(request) }
     )
   }
@@ -206,26 +206,26 @@ class ApiClient {
   async telecomPricing(serviceType: string, network: string, amount?: number) {
     const params = new URLSearchParams({ serviceType, network })
     if (amount) params.append('amount', String(amount))
-    return this.request<any[]>(`/telecom/pricing?${params.toString()}`)
+    return this.request<any[]>(`/api/telecom/pricing?${params.toString()}`)
   }
 
   async telecomAvailability(serviceType: string, network: string) {
     const params = new URLSearchParams({ serviceType, network })
-    return this.request<any>(`/telecom/availability?${params.toString()}`)
+    return this.request<any>(`/api/telecom/availability?${params.toString()}`)
   }
 
   async telecomTransaction(transactionId: string, provider?: string) {
     const params = provider ? `?provider=${provider}` : ''
-    return this.request<any>(`/telecom/transaction/${transactionId}${params}`)
+    return this.request<any>(`/api/telecom/transaction/${transactionId}${params}`)
   }
 
   async telecomHistory(limit = 20, offset = 0) {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
-    return this.request<any>(`/telecom/history?${params.toString()}`)
+    return this.request<any>(`/api/telecom/history?${params.toString()}`)
   }
 
   async verifyMeter(meterNumber: string, provider: string, type: 'prepaid' | 'postpaid') {
-    return this.request<any>("/telecom/verify-meter", {
+    return this.request<any>("/api/telecom/verify-meter", {
       method: "POST",
       body: JSON.stringify({ meterNumber, provider, type }),
     })
@@ -238,28 +238,28 @@ class ApiClient {
     return this.request<any>(`/api/nin/stats/${userId}`)
   }
   async ninCardCreateOrder(payload: Record<string, unknown>) {
-    return this.request<any>(`/nin-card/orders`, { method: "POST", body: JSON.stringify(payload) })
+    return this.request<any>(`/api/nin-card/orders`, { method: "POST", body: JSON.stringify(payload) })
   }
   async ninCardUploadSlip(orderId: string, slipUrl: string) {
-    return this.request<any>(`/nin-card/orders/${orderId}/upload-slip`, { method: "POST", body: JSON.stringify({ slipUrl }) })
+    return this.request<any>(`/api/nin-card/orders/${orderId}/upload-slip`, { method: "POST", body: JSON.stringify({ slipUrl }) })
   }
   async ninCardPay(orderId: string, method: string = "wallet") {
-    return this.request<any>(`/nin-card/orders/${orderId}/pay`, { method: "POST", body: JSON.stringify({ method }) })
+    return this.request<any>(`/api/nin-card/orders/${orderId}/pay`, { method: "POST", body: JSON.stringify({ method }) })
   }
   async ninCardTrack(orderId: string) {
-    return this.request<any>(`/nin-card/orders/${orderId}/track`)
+    return this.request<any>(`/api/nin-card/orders/${orderId}/track`)
   }
   async ninCardPricing() {
-    return this.request<any>(`/nin-card/pricing`)
+    return this.request<any>(`/api/nin-card/pricing`)
   }
   async ninCardVerifyPayment(orderId: string, ref: string) {
-    return this.request<any>(`/nin-card/orders/${orderId}/verify-payment`, { method: "POST", body: JSON.stringify({ ref }) })
+    return this.request<any>(`/api/nin-card/orders/${orderId}/verify-payment`, { method: "POST", body: JSON.stringify({ ref }) })
   }
   async ninCardOrderDetails(orderId: string) {
-    return this.request<any>(`/nin-card/orders/${orderId}/details`)
+    return this.request<any>(`/api/nin-card/orders/${orderId}/details`)
   }
   async ninCardListOrders() {
-    return this.request<any>(`/nin-card/orders`)
+    return this.request<any>(`/api/nin-card/orders`)
   }
 
   // Wallet transfers
