@@ -1,16 +1,20 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { OSInterface } from '@/components/os-interface'
 import ServiceMap from '@/components/ServiceMap'
 import { useOSKernel } from '@/lib/os-kernel-context'
+import KycModal from '@/components/KycModal'
+import { apiClient } from '@/lib/api'
 
 export default function DashboardPage() {
   const router = useRouter()
   const { user, isLoading, isAuthenticated, logout } = useAuth()
   const { launchApp, availableApps } = useOSKernel()
+  const [wallet, setWallet] = useState<{ balance: number; currency: string; accountId: string } | null>(null)
+  const [walletError, setWalletError] = useState<string | null>(null)
 
   const services = [
     {
@@ -78,12 +82,27 @@ export default function DashboardPage() {
       position_x: 420, position_y: 260,
     },
   ]
+  const [showKyc, setShowKyc] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/login")
     }
   }, [isLoading, isAuthenticated, router])
+
+  useEffect(() => {
+    const fetchWallet = async () => {
+      if (!isLoading && isAuthenticated) {
+        try {
+          const data = await apiClient.getWallet()
+          setWallet(data)
+        } catch (e: any) {
+          setWalletError(e?.message || 'Failed to load wallet')
+        }
+      }
+    }
+    fetchWallet()
+  }, [isLoading, isAuthenticated])
 
   if (isLoading) {
     return (
@@ -135,7 +154,7 @@ export default function DashboardPage() {
       case 'premium-card':
         router.push('/nin/card'); break
       case 'tin-registration':
-        router.push('/telecom'); break
+        router.push('/tin'); break
       default:
         router.push('/dashboard')
     }
@@ -144,6 +163,7 @@ export default function DashboardPage() {
   return (
     <OSInterface>
       <div className="os-dashboard-content min-h-screen bg-black text-white p-6">
+        <KycModal open={showKyc} onClose={()=>setShowKyc(false)} onCompleted={()=>{ try { location.reload() } catch {} }} />
         <div className="mb-8 flex justify-between items-center">
           <div>
             <div className="inline-flex items-center bg-blue-600/20 rounded-full px-4 py-2 backdrop-blur-sm">
@@ -166,8 +186,16 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
             <h3 className="text-lg font-semibold mb-2">Wallet Balance</h3>
-            <p className="text-2xl font-bold text-green-400">$0.00</p>
-            <p className="text-sm text-gray-400 mt-1">Available funds</p>
+            <p className="text-2xl font-bold text-green-400">
+              {wallet ? `${wallet.currency || '₦'}${(wallet.balance || 0).toLocaleString()}` : 'Loading...'}
+            </p>
+            <p className="text-sm text-gray-400 mt-1">{wallet?.accountId ? `Account: ${wallet.accountId}` : 'Available funds'}</p>
+            {walletError && <p className="text-sm text-red-400 mt-2">{walletError}</p>}
+            <div className="mt-4 flex gap-2">
+              <button onClick={() => router.push('/wallet/fund')} className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700">Fund</button>
+              <button onClick={() => router.push('/wallet/transfer')} className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700">Transfer</button>
+              <button onClick={() => router.push('/wallet/withdraw')} className="px-3 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-700">Withdraw</button>
+            </div>
           </div>
           <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
             <h3 className="text-lg font-semibold mb-2">Total Transactions</h3>
@@ -184,6 +212,15 @@ export default function DashboardPage() {
         {/* Role-Based Quick Actions */}
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
+          {!(user as any)?.kyc?.status || (user as any)?.kyc?.status !== 'APPROVED' ? (
+            <div className="bg-yellow-600/20 border border-yellow-500/40 text-yellow-200 rounded-2xl p-4 mb-4">
+              <div className="font-semibold mb-1">Finish KYC to unlock all features</div>
+              <div className="text-sm text-yellow-100/80">Verify your identity from the dashboard to access transfers, CAC, vendor onboarding and more.</div>
+              <div className="mt-3">
+                <button onClick={() => setShowKyc(true)} className="px-4 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-700">Start KYC</button>
+              </div>
+            </div>
+          ) : null}
           {user.role === 'individual' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <button onClick={() => handleAppLaunch('dorce-wallet')} className="bg-white/10 border border-blue-400/30 hover:bg-white/20 text-white p-4 rounded-lg text-center">
@@ -249,7 +286,84 @@ export default function DashboardPage() {
         {/* Service Discovery Map */}
         <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">Service Discovery</h2>
-          <ServiceMap services={services as any} onServiceClick={handleServiceClick} />
+          <ServiceMap services={[...services, {
+            id: 'escrow',
+            name: 'Escrow',
+            description: 'Hold funds securely until delivery',
+            status: 'active' as const,
+            metadata: { icon: '🛡️', category: 'trust', color: '#2DD4BF' },
+            position_x: 280, position_y: 240,
+          }] as any} onServiceClick={handleServiceClick} />
+        </div>
+
+        {/* Service Containers */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4">Services</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
+              <h3 className="font-semibold">Transfer</h3>
+              <p className="text-sm text-gray-300">Send money instantly to anyone.</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => router.push('/wallet/transfer')} className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700">Open</button>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
+              <h3 className="font-semibold">Escrow</h3>
+              <p className="text-sm text-gray-300">Hold funds until delivery is confirmed.</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => router.push('/escrow')} className="px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700">Open</button>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
+              <h3 className="font-semibold">Register Business (CAC)</h3>
+              <p className="text-sm text-gray-300">Incorporate your company quickly.</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => router.push('/cac-registration')} className="px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700">Open</button>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
+              <h3 className="font-semibold">Vendor Onboarding</h3>
+              <p className="text-sm text-gray-300">Become a marketplace vendor.</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => router.push('/commerce/onboard')} className="px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700">Open</button>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
+              <h3 className="font-semibold">Storelink Creation</h3>
+              <p className="text-sm text-gray-300">Create a shareable store link.</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => router.push('/commerce')} className="px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-700">Open</button>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
+              <h3 className="font-semibold">Digital Subscriptions</h3>
+              <p className="text-sm text-gray-300">Manage recurring billing.</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => router.push('/subscriptions')} className="px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700">Open</button>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
+              <h3 className="font-semibold">NIN Registration</h3>
+              <p className="text-sm text-gray-300">Enroll for NIN nationwide.</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => router.push('/nin/enroll')} className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700">Open</button>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
+              <h3 className="font-semibold">Premium Card Printing</h3>
+              <p className="text-sm text-gray-300">Order high-quality ID cards.</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => router.push('/nin/card')} className="px-3 py-2 rounded-lg bg-yellow-600 hover:bg-yellow-700">Open</button>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-blue-400/30">
+              <h3 className="font-semibold">TIN Registration</h3>
+              <p className="text-sm text-gray-300">Individual and Corporate TIN.</p>
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => router.push('/tin')} className="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700">Open</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Available Apps */}
