@@ -92,8 +92,6 @@ class ApiClient {
     password: string,
     firstName?: string,
     lastName?: string,
-    accountType?: 'individual' | 'business' | 'agent',
-    extra?: Record<string, unknown>
   ) {
     return this.request<AuthTokens>("/api/auth/register", {
       method: "POST",
@@ -103,8 +101,6 @@ class ApiClient {
         password, 
         firstName, 
         lastName,
-        accountType,
-        ...extra
       }),
     })
   }

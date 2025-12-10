@@ -106,13 +106,21 @@ export default function RegisterPage() {
     }
   }
 
+  const normalizePhone = (raw: string) => {
+    const p = raw.trim()
+    if (p.startsWith('+')) return p
+    if (p.startsWith('0')) return `+234${p.slice(1)}`
+    // fallback: assume already international or missing '+'
+    return p
+  }
+
   const handleContinueFromStep1 = async () => {
     setLoading(true)
     setError(null)
     try {
       const [firstName, ...lastNameParts] = fullName.trim().split(' ')
       const lastName = lastNameParts.join(' ') || ''
-      const tokens = await apiClient.register(email, phone, password, firstName, lastName, 'individual', {})
+      const tokens = await apiClient.register(email.trim(), normalizePhone(phone), password, firstName, lastName)
       try { localStorage.setItem('auth_tokens', JSON.stringify(tokens)) } catch {}
       // proactively send OTP to email
       await sendOtp()
@@ -120,7 +128,7 @@ export default function RegisterPage() {
     } catch (e: any) {
       // If user exists, try login and proceed to OTP
       try {
-        await loginAndStore(email, password)
+        await loginAndStore(email.trim(), password)
         await sendOtp()
         next()
       } catch (err: any) {
